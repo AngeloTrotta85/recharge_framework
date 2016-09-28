@@ -26,6 +26,9 @@ simple UDPBasicRecharge extends UDPBasicApp
     parameters:
         double checkRechargeTimer @unit(s) = default(5s);
         double sensorRadious @unit(m) = default(50m);
+        bool isCentralized = default(false);
+        
+        int chargingStationNumber = default(3);
         
         @display("i=block/app");
         @class(UDPBasicRecharge);

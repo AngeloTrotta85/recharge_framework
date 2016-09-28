@@ -21,6 +21,7 @@
 #include <simplebattery/SimpleBattery.h>
 #include <vector>
 #include <map>
+#include <list>
 #include <iomanip>      // std::setprecision
 
 #include "inet/applications/udpapp/UDPBasicApp.h"
@@ -41,6 +42,17 @@ public:
         Coord pos;
     } nodeInfo_t;
 
+    typedef struct {
+        int addr;
+        int assignedRecharge;
+        int executedRecharge;
+    } nodeAlgo_t;
+
+    typedef struct {
+        int chargingAppAddr;
+        std::list<nodeAlgo_t> nodeList;
+    } groupInfo_t;
+
 protected:
   virtual int numInitStages() const override { return NUM_INIT_STAGES; }
   virtual void initialize(int stage) override;
@@ -55,9 +67,17 @@ protected:
 
   virtual double calculateRechargeProb(void);
   virtual void checkRecharge(void);
+  virtual void checkCentralizedRecharge(void);
+  virtual void initCentralizedRecharge(void);
+
+  virtual void decideRechargeSceduling(void);
+
+  int getNodeWithMaxEnergy(groupInfo_t *gi, double &battVal);
+  int getNodeWithMinEnergy(groupInfo_t *gi, double &battVal);
 
 public:
     UDPBasicRecharge() {}
+    virtual ~UDPBasicRecharge();
 
 
 private:
@@ -65,16 +85,21 @@ private:
     int myAppAddr;
 
     cMessage *autoMsgRecharge = nullptr;
+    cMessage *autoMsgCentralizedRecharge = nullptr;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
 
     std::map<int, nodeInfo_t> neigh;
+    std::list<groupInfo_t> groupList;
 
     //parameters
     double checkRechargeTimer;
     double sensorRadious;
     Coord rebornPos;
+
+    bool isCentralized;
+    int chargingStationNumber;
 };
 
 } /* namespace inet */

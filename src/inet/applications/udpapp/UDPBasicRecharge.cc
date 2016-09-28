@@ -27,6 +27,11 @@ namespace inet {
 
 Define_Module(UDPBasicRecharge)
 
+UDPBasicRecharge::~UDPBasicRecharge() {
+    cancelAndDelete(autoMsgRecharge);
+    cancelAndDelete(autoMsgCentralizedRecharge);
+}
+
 void UDPBasicRecharge::initialize(int stage)
 {
     UDPBasicApp::initialize(stage);
@@ -36,6 +41,8 @@ void UDPBasicRecharge::initialize(int stage)
         mob = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getSubmodule("mobility"));
         sb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getSubmodule("battery"));
 
+        myAppAddr = this->getParentModule()->getIndex();
+
         double rx = (mob->getConstraintAreaMax().x - mob->getConstraintAreaMin().x) / 2.0;
         double ry = (mob->getConstraintAreaMax().y - mob->getConstraintAreaMin().y) / 2.0;
         rebornPos = Coord(rx, ry);
@@ -44,16 +51,31 @@ void UDPBasicRecharge::initialize(int stage)
 
         checkRechargeTimer = par("checkRechargeTimer");
         sensorRadious = par("sensorRadious");
+        isCentralized = par("isCentralized").boolValue();
+        chargingStationNumber = par("chargingStationNumber");
 
         autoMsgRecharge = new cMessage("msgRecharge");
-        scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
+        if (isCentralized) {
+            if (myAppAddr == 0) {
+                autoMsgCentralizedRecharge = new cMessage("msgCentralizedRecharge");
+                scheduleAt(simTime() + checkRechargeTimer, autoMsgCentralizedRecharge);
+            }
+        }
+        else {
+            scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
+
+        }
     }
     else if (stage == INITSTAGE_LAST) {
         myAddr = L3AddressResolver().resolve(this->getParentModule()->getFullPath().c_str());
-        myAppAddr = this->getParentModule()->getIndex();
+        //myAppAddr = this->getParentModule()->getIndex();
         EV << "[" << myAppAddr << "] My address is: " << myAddr << std::endl;
 
         this->getParentModule()->getDisplayString().setTagArg("t", 0, myAddr.str().c_str());
+
+        if (isCentralized && (myAppAddr == 0)) {
+            initCentralizedRecharge();
+        }
     }
 }
 
@@ -74,6 +96,10 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         else {
             scheduleAt(simTime() + 0.5, msg);
         }
+    }
+    else if ((msg->isSelfMessage()) && (msg == autoMsgCentralizedRecharge)) {
+        checkCentralizedRecharge();
+        scheduleAt(simTime() + checkRechargeTimer, msg);
     }
     else {
         UDPBasicApp::handleMessageWhenUp(msg);
@@ -200,6 +226,14 @@ void UDPBasicRecharge::updateVirtualForces(void) {
         EV << "Setting force with displacement: " << springDispl << " (distance: " << distance << ")" << endl;
         mob->addVirtualSpring(uVec, preferredDistance, springDispl);
     }
+
+    // add the force towards the center rebornPos
+    if (rebornPos.distance(myPos) > 10) {
+        Coord uVec = rebornPos - myPos;
+        //Coord uVec = myPos - rebornPos;
+        uVec.normalize();
+        mob->addVirtualSpring(uVec, rebornPos.distance(myPos), -3);
+    }
 }
 
 double UDPBasicRecharge::calculateRechargeProb(void) {
@@ -220,6 +254,133 @@ void UDPBasicRecharge::checkRecharge(void) {
         mob->clearVirtualSpringsAndsetPosition(rebornPos);
 
         //mob->addVirtualSpring(Coord(1,1,0), 1, 1000);
+    }
+}
+
+void UDPBasicRecharge::initCentralizedRecharge(void) {
+    // create the groups
+    int numberNodes = this->getParentModule()->getVectorSize();
+    int numG = numberNodes / chargingStationNumber;
+
+    if ((numberNodes % chargingStationNumber) > 0) numG++;
+
+    int actG = 0;
+    for (int i = 0; i < numberNodes; i++) {
+
+
+        if (actG == 0) {
+            groupInfo_t newG;
+
+            newG.chargingAppAddr = -1;
+            //newG.nodeList.push_front(newNodeInfo);
+
+            groupList.push_front(newG);
+        }
+        //else {
+        //    groupList.front().nodeList.push_front(i);
+        //}
+
+        nodeAlgo_t newNodeInfo;
+        newNodeInfo.addr = i;
+        newNodeInfo.executedRecharge = 0;
+        newNodeInfo.assignedRecharge = 0;
+
+        groupList.front().nodeList.push_front(newNodeInfo);
+
+        actG++;
+        if (actG >= numG) {
+            actG = 0;
+        }
+    }
+
+    decideRechargeSceduling();
+
+    /*
+    for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        groupInfo_t *actGI = &(*it);
+
+        int minChargeAddr = -1;
+        double minChargeVal = 0;
+
+        EV << "GRUPPO: ";
+        for (auto it2 = actGI->nodeList.begin(); it2 != actGI->nodeList.end(); it2++) {
+            int actAddress = it2->addr;
+            power::SimpleBattery *battNeigh = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", actAddress)->getSubmodule("battery"));
+            double actPow = battNeigh->getBatteryLevelAbs();
+
+            EV << actAddress << "|" << actPow << " ";
+
+            if ((minChargeAddr < 0) || (actPow < minChargeVal)) {
+                minChargeAddr = actAddress;
+                minChargeVal = actPow;
+            }
+        }
+
+        actGI->chargingAppAddr = minChargeAddr;
+
+        EV << " --- : minChargeAddr: " << minChargeAddr << endl;
+
+        // setting the min node in charging
+        VirtualSpringMobility *mobMin = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", minChargeAddr)->getSubmodule("mobility"));
+        power::SimpleBattery *battMin = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", minChargeAddr)->getSubmodule("battery"));
+        UDPBasicRecharge *nodeMin = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", minChargeAddr)->getSubmodule("udpApp", 0));
+        battMin->setState(power::SimpleBattery::CHARGING);
+        mobMin->clearVirtualSpringsAndsetPosition(rebornPos);
+        nodeMin->neigh.clear();
+
+    }
+    */
+}
+
+int UDPBasicRecharge::getNodeWithMaxEnergy(groupInfo_t *gi, double &battVal) {
+    int ris = -1;
+    double maxE = -1;
+
+    for (auto it = gi->nodeList.begin(); it != gi->nodeList.end(); it++) {
+        nodeAlgo_t *actN = &(*it);
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", actN->addr)->getSubmodule("battery"));
+
+        if (battN->getBatteryLevelAbs() > maxE) {
+            ris = actN->addr;
+            maxE = battN->getBatteryLevelAbs();
+        }
+    }
+
+    battVal = maxE;
+    return ris;
+}
+
+int UDPBasicRecharge::getNodeWithMinEnergy(groupInfo_t *gi, double &battVal) {
+    int ris = -1;
+    double minE = std::numeric_limits<double>::max();
+
+    for (auto it = gi->nodeList.begin(); it != gi->nodeList.end(); it++) {
+        nodeAlgo_t *actN = &(*it);
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", actN->addr)->getSubmodule("battery"));
+
+        if (battN->getBatteryLevelAbs() < minE) {
+            ris = actN->addr;
+            minE = battN->getBatteryLevelAbs();
+        }
+    }
+
+    battVal = minE;
+    return ris;
+
+}
+
+void UDPBasicRecharge::decideRechargeSceduling(void) {
+    for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        groupInfo_t *actGI = &(*it);
+        double maxE;
+
+        int maxNode = getNodeWithMaxEnergy(actGI, maxE);
+    }
+}
+
+void UDPBasicRecharge::checkCentralizedRecharge(void) {
+    for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        //groupInfo_t *actGI = &(*it);
     }
 }
 
