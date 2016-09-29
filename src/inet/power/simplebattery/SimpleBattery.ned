@@ -23,5 +23,9 @@ simple SimpleBattery
     double nominalCapacity @unit(J) = default(1000J);
     double initialCapacity @unit(J) = default(nominalCapacity);
     double updateInterval @unit(s) = default(0.2s);
+    
+    double chargingFactor = default(2);
+    double dischargingFactor = default(4);
+    
     @class(SimpleBattery);
 }

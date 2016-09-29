@@ -62,6 +62,14 @@ public:
     void setState(batteryState bs) {bState = bs;}
     batteryState getState(void) const {return bState;}
 
+    double getChargingFactor() const {
+        return chargingFactor;
+    }
+
+    double getDischargingFactor() const {
+        return dischargingFactor;
+    }
+
 private:
 
     cMessage *autoMsg = nullptr;
@@ -72,6 +80,9 @@ private:
     double initialCapacity;
     double fullCapacity;
     double updateInterval;
+
+    double chargingFactor;
+    double dischargingFactor;
 
 };
 

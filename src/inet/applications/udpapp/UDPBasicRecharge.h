@@ -46,6 +46,8 @@ public:
         int addr;
         int assignedRecharge;
         int executedRecharge;
+        double energy;
+        bool isCharging;
     } nodeAlgo_t;
 
     typedef struct {
@@ -75,10 +77,14 @@ protected:
   int getNodeWithMaxEnergy(groupInfo_t *gi, double &battVal);
   int getNodeWithMinEnergy(groupInfo_t *gi, double &battVal);
 
+  void updateBatteryVals(std::list<nodeAlgo_t> *list);
+
 public:
     UDPBasicRecharge() {}
     virtual ~UDPBasicRecharge();
 
+
+    //bool compare_energy (const nodeAlgo_t& first, const nodeAlgo_t& second);
 
 private:
     L3Address myAddr;

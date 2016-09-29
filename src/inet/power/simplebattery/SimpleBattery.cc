@@ -27,6 +27,9 @@ void SimpleBattery::initialize(int stage) {
         batteryLevel = initialCapacity;
         updateInterval = par("updateInterval");
 
+        chargingFactor = par("chargingFactor");
+        dischargingFactor = par("dischargingFactor");
+
         autoMsg = new cMessage("batteryLevelUpdate");
         scheduleAt(simTime() + updateInterval, autoMsg);
 
