@@ -1,14 +1,14 @@
 version 2
-run General-0-20160929-13:20:22-23136
+run General-0-20161001-21:24:16-8823
 attr configname General
-attr datetime 20160929-13:20:22
+attr datetime 20161001-21:24:16
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network Net80211test
-attr processid 23136
+attr processid 8823
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -25,10 +25,14 @@ param **.host*.mobility.initialX "normal(300m, 50m)"
 param **.host*.mobility.initialY "normal(200m, 50m)"
 param **.host*.mobility.updateInterval 100ms
 param **.host*.mobilityType "\"VirtualSpringMobility\""
-param **.host[*].battery.initialCapacity "normal(700J, 50J)"
+param **.host[*].battery.flightHeight 1m
+param **.host[*].battery.initialCapacity 35J
+param **.host[*].battery.swapHeightFactor 0.5
 param **.host[*].networkLayerType "\"IPv4ExtNetworkLayer\""
 param **.host[*].udpType "\"UDPExt\""
 param **.ip.forceBroadcast true
+param **.udpApp[0].chargingStationNumber 1
+param **.udpApp[0].checkRechargeTimer 1s
 param **.udpApp[0].destAddresses "\"255.255.255.255\""
 param **.udpApp[0].destPort 100
 param **.udpApp[0].isCentralized true
@@ -54,7 +58,7 @@ param **.wlan[*].radio.receiverType "\"Ieee80211ScalarReceiverExt\""
 param **.wlan[*].radio.transmitter.power 100mW
 param *.host[*].numUdpApps 1
 param *.host[*].udpApp[*].typename "\"UDPBasicRecharge\""
-param *.numHosts 17
+param *.numHosts 4
 
 vector 22  Net80211test.host[0].wlan[0].mac.ctn[0]  state:vector  ETV
 attr interpolationmode  none
@@ -69,58 +73,6 @@ attr interpolationmode  none
 attr source  stateChanged
 attr title  "contention state, vector"
 vector 91  Net80211test.host[3].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 114  Net80211test.host[4].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 137  Net80211test.host[5].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 160  Net80211test.host[6].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 183  Net80211test.host[7].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 206  Net80211test.host[8].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 229  Net80211test.host[9].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 252  Net80211test.host[10].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 275  Net80211test.host[11].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 298  Net80211test.host[12].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 321  Net80211test.host[13].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 344  Net80211test.host[14].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 367  Net80211test.host[15].wlan[0].mac.ctn[0]  state:vector  ETV
-attr interpolationmode  none
-attr source  stateChanged
-attr title  "contention state, vector"
-vector 390  Net80211test.host[16].wlan[0].mac.ctn[0]  state:vector  ETV
 attr interpolationmode  none
 attr source  stateChanged
 attr title  "contention state, vector"
@@ -156,110 +108,6 @@ vector 90  Net80211test.host[3].wlan[0].radio  radioChannel:vector  ETV
 attr interpolationmode  sample-hold
 attr source  radioChannelChanged
 attr title  "Radio channel, vector"
-vector 110  Net80211test.host[4].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 113  Net80211test.host[4].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 133  Net80211test.host[5].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 136  Net80211test.host[5].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 156  Net80211test.host[6].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 159  Net80211test.host[6].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 179  Net80211test.host[7].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 182  Net80211test.host[7].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 202  Net80211test.host[8].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 205  Net80211test.host[8].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 225  Net80211test.host[9].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 228  Net80211test.host[9].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 248  Net80211test.host[10].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 251  Net80211test.host[10].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 271  Net80211test.host[11].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 274  Net80211test.host[11].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 294  Net80211test.host[12].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 297  Net80211test.host[12].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 317  Net80211test.host[13].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 320  Net80211test.host[13].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 340  Net80211test.host[14].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 343  Net80211test.host[14].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 363  Net80211test.host[15].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 366  Net80211test.host[15].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
-vector 386  Net80211test.host[16].wlan[0].radio  radioMode:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioModeChanged
-attr title  "Radio mode, vector"
-vector 389  Net80211test.host[16].wlan[0].radio  radioChannel:vector  ETV
-attr interpolationmode  sample-hold
-attr source  radioChannelChanged
-attr title  "Radio channel, vector"
 vector 19  Net80211test.host[0].wlan[0].radio  receptionState:vector  ETV
 attr interpolationmode  sample-hold
 attr source  receptionStateChanged
@@ -276,191 +124,3272 @@ vector 88  Net80211test.host[3].wlan[0].radio  receptionState:vector  ETV
 attr interpolationmode  sample-hold
 attr source  receptionStateChanged
 attr title  "Radio reception state, vector"
-vector 111  Net80211test.host[4].wlan[0].radio  receptionState:vector  ETV
+vector 1  Net80211test.host[0].udpApp[0]  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 4  Net80211test.host[0].udp  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 12  Net80211test.host[0].lo0.lo  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 13  Net80211test.host[0].lo0.lo  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 16  Net80211test.host[0].wlan[0].mac  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 5  Net80211test.host[0].udp  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 6  Net80211test.host[0].udp  passedUpPk:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets passed up, vector(count)"
+vector 0  Net80211test.host[0].udpApp[0]  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 2  Net80211test.host[0].udpApp[0]  rcvdPkLifetime:vector  ETV
+attr interpolationmode  none
+attr source  messageAge(rcvdPk)
+attr title  "received packet lifetime, vector"
+attr unit  s
+vector 15  Net80211test.host[0].wlan[0].mac  sentDownPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToLower
+attr title  "packets sent to lower layer, vector(packetBytes)"
+vector 20  Net80211test.host[0].wlan[0].radio  transmissionState:vector  ETV
 attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 134  Net80211test.host[5].wlan[0].radio  receptionState:vector  ETV
+attr source  transmissionStateChanged
+attr title  "Radio transmission state, vector"
+vector 40  Net80211test.host[1].wlan[0].mac  rcvdPkFromLL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromLower
+attr title  "packets received from lower layer, vector(packetBytes)"
+vector 37  Net80211test.host[1].wlan[0].mac  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 63  Net80211test.host[2].wlan[0].mac  rcvdPkFromLL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromLower
+attr title  "packets received from lower layer, vector(packetBytes)"
+vector 60  Net80211test.host[2].wlan[0].mac  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 86  Net80211test.host[3].wlan[0].mac  rcvdPkFromLL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromLower
+attr title  "packets received from lower layer, vector(packetBytes)"
+vector 83  Net80211test.host[3].wlan[0].mac  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 28  Net80211test.host[1].udp  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 30  Net80211test.host[1].udp  droppedPkWrongPort:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets dropped (wrong port), vector(count)"
+vector 51  Net80211test.host[2].udp  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 53  Net80211test.host[2].udp  droppedPkWrongPort:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets dropped (wrong port), vector(count)"
+vector 74  Net80211test.host[3].udp  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 76  Net80211test.host[3].udp  droppedPkWrongPort:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets dropped (wrong port), vector(count)"
+vector 70  Net80211test.host[3].udpApp[0]  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 73  Net80211test.host[3].udp  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 81  Net80211test.host[3].lo0.lo  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 82  Net80211test.host[3].lo0.lo  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 85  Net80211test.host[3].wlan[0].mac  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 75  Net80211test.host[3].udp  passedUpPk:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets passed up, vector(count)"
+vector 69  Net80211test.host[3].udpApp[0]  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 71  Net80211test.host[3].udpApp[0]  rcvdPkLifetime:vector  ETV
+attr interpolationmode  none
+attr source  messageAge(rcvdPk)
+attr title  "received packet lifetime, vector"
+attr unit  s
+vector 84  Net80211test.host[3].wlan[0].mac  sentDownPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToLower
+attr title  "packets sent to lower layer, vector(packetBytes)"
+vector 89  Net80211test.host[3].wlan[0].radio  transmissionState:vector  ETV
 attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 157  Net80211test.host[6].wlan[0].radio  receptionState:vector  ETV
+attr source  transmissionStateChanged
+attr title  "Radio transmission state, vector"
+vector 17  Net80211test.host[0].wlan[0].mac  rcvdPkFromLL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromLower
+attr title  "packets received from lower layer, vector(packetBytes)"
+vector 14  Net80211test.host[0].wlan[0].mac  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 24  Net80211test.host[1].udpApp[0]  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 27  Net80211test.host[1].udp  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 35  Net80211test.host[1].lo0.lo  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 36  Net80211test.host[1].lo0.lo  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 39  Net80211test.host[1].wlan[0].mac  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 29  Net80211test.host[1].udp  passedUpPk:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets passed up, vector(count)"
+vector 23  Net80211test.host[1].udpApp[0]  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 25  Net80211test.host[1].udpApp[0]  rcvdPkLifetime:vector  ETV
+attr interpolationmode  none
+attr source  messageAge(rcvdPk)
+attr title  "received packet lifetime, vector"
+attr unit  s
+vector 38  Net80211test.host[1].wlan[0].mac  sentDownPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToLower
+attr title  "packets sent to lower layer, vector(packetBytes)"
+vector 43  Net80211test.host[1].wlan[0].radio  transmissionState:vector  ETV
 attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 180  Net80211test.host[7].wlan[0].radio  receptionState:vector  ETV
+attr source  transmissionStateChanged
+attr title  "Radio transmission state, vector"
+vector 52  Net80211test.host[2].udp  passedUpPk:vector(count)  ETV
+attr interpolationmode  none
+attr title  "packets passed up, vector(count)"
+vector 46  Net80211test.host[2].udpApp[0]  rcvdPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  rcvdPk
+attr title  "packets received, vector(packetBytes)"
+vector 48  Net80211test.host[2].udpApp[0]  rcvdPkLifetime:vector  ETV
+attr interpolationmode  none
+attr source  messageAge(rcvdPk)
+attr title  "received packet lifetime, vector"
+attr unit  s
+vector 47  Net80211test.host[2].udpApp[0]  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 50  Net80211test.host[2].udp  sentPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  sentPk
+attr title  "packets sent, vector(packetBytes)"
+vector 58  Net80211test.host[2].lo0.lo  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 59  Net80211test.host[2].lo0.lo  passedUpPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToUpper
+attr title  "packets passed to higher layer, vector(packetBytes)"
+vector 62  Net80211test.host[2].wlan[0].mac  rcvdPkFromHL:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetReceivedFromUpper
+attr title  "packets received from higher layer, vector(packetBytes)"
+vector 61  Net80211test.host[2].wlan[0].mac  sentDownPk:vector(packetBytes)  ETV
+attr interpolationmode  none
+attr source  packetSentToLower
+attr title  "packets sent to lower layer, vector(packetBytes)"
+vector 66  Net80211test.host[2].wlan[0].radio  transmissionState:vector  ETV
 attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 203  Net80211test.host[8].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 226  Net80211test.host[9].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 249  Net80211test.host[10].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 272  Net80211test.host[11].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 295  Net80211test.host[12].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 318  Net80211test.host[13].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 341  Net80211test.host[14].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 364  Net80211test.host[15].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
-vector 387  Net80211test.host[16].wlan[0].radio  receptionState:vector  ETV
-attr interpolationmode  sample-hold
-attr source  receptionStateChanged
-attr title  "Radio reception state, vector"
+attr source  transmissionStateChanged
+attr title  "Radio transmission state, vector"
+0	259	3.947009828233	512
+0	326	4.447009828233	512
+0	388	4.947009828233	512
+0	455	5.447009828233	512
+0	531	5.720108709309	512
+0	581	5.885002786212	512
+0	596	5.947009828233	512
+0	680	6.220108775948	512
+0	721	6.352792806229	512
+0	741	6.447009828233	512
+0	820	6.720108956049	512
+0	865	6.852793077071	512
+0	881	6.947009828233	512
+0	965	7.220109098001	512
+0	1006	7.352793299147	512
+0	1026	7.447009828233	512
+0	1099	7.7201091537	512
+0	1150	7.852793406109	512
+0	1166	7.947009828233	512
+0	2098	11.220109080201	512
+0	2140	11.35279297997	512
+0	2166	11.447009828233	512
+0	2233	11.720109080688	512
+0	2284	11.852792995788	512
+0	2306	11.947009828233	512
+0	2378	12.220109081471	512
+0	2425	12.3527930215	512
+0	2451	12.447009828233	512
+0	2518	12.720109078543	512
+0	2569	12.852793058365	512
+0	2591	12.947009828233	512
+1	248	3.947009828233	512
+1	317	4.447009828233	512
+1	379	4.947009828233	512
+1	446	5.447009828233	512
+1	587	5.947009828233	512
+1	732	6.447009828233	512
+1	872	6.947009828233	512
+1	1017	7.447009828233	512
+1	1157	7.947009828233	512
+1	2157	11.447009828233	512
+1	2297	11.947009828233	512
+1	2442	12.447009828233	512
+1	2582	12.947009828233	512
+2	259	3.947009828233	0
+2	326	4.447009828233	0
+2	388	4.947009828233	0
+2	455	5.447009828233	0
+2	531	5.720108709309	0.000222
+2	581	5.885002786212	0.0002220038
+2	596	5.947009828233	0
+2	680	6.220108775948	0.000222066639
+2	721	6.352792806229	0.000222131195
+2	741	6.447009828233	0
+2	820	6.720108956049	0.00022224674
+2	865	6.852793077071	0.000222402037
+2	881	6.947009828233	0
+2	965	7.220109098001	0.000222388692
+2	1006	7.352793299147	0.000222624113
+2	1026	7.447009828233	0
+2	1099	7.7201091537	0.000222444391
+2	1150	7.852793406109	0.000222731075
+2	1166	7.947009828233	0
+2	2098	11.220109080201	0.000222370892
+2	2140	11.35279297997	0.000222304936
+2	2166	11.447009828233	0
+2	2233	11.720109080688	0.000222371379
+2	2284	11.852792995788	0.000222320754
+2	2306	11.947009828233	0
+2	2378	12.220109081471	0.000222372162
+2	2425	12.3527930215	0.000222346466
+2	2451	12.447009828233	0
+2	2518	12.720109078543	0.000222369234
+2	2569	12.852793058365	0.000222383331
+2	2591	12.947009828233	0
+4	251	3.947009828233	520
+4	318	4.447009828233	520
+4	380	4.947009828233	520
+4	447	5.447009828233	520
+4	588	5.947009828233	520
+4	733	6.447009828233	520
+4	873	6.947009828233	520
+4	1018	7.447009828233	520
+4	1158	7.947009828233	520
+4	2158	11.447009828233	520
+4	2298	11.947009828233	520
+4	2443	12.447009828233	520
+4	2583	12.947009828233	520
+5	257	3.947009828233	520
+5	324	4.447009828233	520
+5	386	4.947009828233	520
+5	453	5.447009828233	520
+5	528	5.720108709309	520
+5	580	5.885002786212	520
+5	594	5.947009828233	520
+5	679	6.220108775948	520
+5	720	6.352792806229	520
+5	739	6.447009828233	520
+5	819	6.720108956049	520
+5	864	6.852793077071	520
+5	879	6.947009828233	520
+5	964	7.220109098001	520
+5	1005	7.352793299147	520
+5	1024	7.447009828233	520
+5	1098	7.7201091537	520
+5	1149	7.852793406109	520
+5	1164	7.947009828233	520
+5	1241	8.220109105659	520
+5	1278	8.352792910109	520
+5	1315	8.38500278405	520
+5	1383	8.720109156748	520
+5	1422	8.852792934538	520
+5	1459	8.885002826755	520
+5	1528	9.220109149724	520
+5	1563	9.352792958355	520
+5	1600	9.385002904628	520
+5	1668	9.720109115576	520
+5	1707	9.852792971579	520
+5	1744	9.885002972018	520
+5	1813	10.220109086494	520
+5	1848	10.352792977992	520
+5	1891	10.38500300238	520
+5	1953	10.7201090754	520
+5	1992	10.852792980059	520
+5	2035	10.885002997356	520
+5	2096	11.220109080201	520
+5	2139	11.35279297997	520
+5	2164	11.447009828233	520
+5	2232	11.720109080688	520
+5	2283	11.852792995788	520
+5	2304	11.947009828233	520
+5	2377	12.220109081471	520
+5	2424	12.3527930215	520
+5	2449	12.447009828233	520
+5	2517	12.720109078543	520
+5	2568	12.852793058365	520
+5	2589	12.947009828233	520
+6	257	3.947009828233	1
+6	324	4.447009828233	2
+6	386	4.947009828233	3
+6	453	5.447009828233	4
+6	528	5.720108709309	5
+6	580	5.885002786212	6
+6	594	5.947009828233	7
+6	679	6.220108775948	8
+6	720	6.352792806229	9
+6	739	6.447009828233	10
+6	819	6.720108956049	11
+6	864	6.852793077071	12
+6	879	6.947009828233	13
+6	964	7.220109098001	14
+6	1005	7.352793299147	15
+6	1024	7.447009828233	16
+6	1098	7.7201091537	17
+6	1149	7.852793406109	18
+6	1164	7.947009828233	19
+6	1241	8.220109105659	20
+6	1278	8.352792910109	21
+6	1315	8.38500278405	22
+6	1383	8.720109156748	23
+6	1422	8.852792934538	24
+6	1459	8.885002826755	25
+6	1528	9.220109149724	26
+6	1563	9.352792958355	27
+6	1600	9.385002904628	28
+6	1668	9.720109115576	29
+6	1707	9.852792971579	30
+6	1744	9.885002972018	31
+6	1813	10.220109086494	32
+6	1848	10.352792977992	33
+6	1891	10.38500300238	34
+6	1953	10.7201090754	35
+6	1992	10.852792980059	36
+6	2035	10.885002997356	37
+6	2096	11.220109080201	38
+6	2139	11.35279297997	39
+6	2164	11.447009828233	40
+6	2232	11.720109080688	41
+6	2283	11.852792995788	42
+6	2304	11.947009828233	43
+6	2377	12.220109081471	44
+6	2424	12.3527930215	45
+6	2449	12.447009828233	46
+6	2517	12.720109078543	47
+6	2568	12.852793058365	48
+6	2589	12.947009828233	49
+12	253	3.947009828233	540
+12	320	4.447009828233	540
+12	382	4.947009828233	540
+12	449	5.447009828233	540
+12	590	5.947009828233	540
+12	735	6.447009828233	540
+12	875	6.947009828233	540
+12	1020	7.447009828233	540
+12	1160	7.947009828233	540
+12	2160	11.447009828233	540
+12	2300	11.947009828233	540
+12	2445	12.447009828233	540
+12	2585	12.947009828233	540
+13	253	3.947009828233	540
+13	320	4.447009828233	540
+13	382	4.947009828233	540
+13	449	5.447009828233	540
+13	590	5.947009828233	540
+13	735	6.447009828233	540
+13	875	6.947009828233	540
+13	1020	7.447009828233	540
+13	1160	7.947009828233	540
+13	2160	11.447009828233	540
+13	2300	11.947009828233	540
+13	2445	12.447009828233	540
+13	2585	12.947009828233	540
+14	519	5.720108709309	576
+14	577	5.885002786212	576
+14	676	6.220108775948	576
+14	717	6.352792806229	576
+14	816	6.720108956049	576
+14	861	6.852793077071	576
+14	961	7.220109098001	576
+14	1002	7.352793299147	576
+14	1095	7.7201091537	576
+14	1146	7.852793406109	576
+14	1235	8.220109105659	576
+14	1275	8.352792910109	576
+14	1312	8.38500278405	576
+14	1380	8.720109156748	576
+14	1419	8.852792934538	576
+14	1456	8.885002826755	576
+14	1525	9.220109149724	576
+14	1560	9.352792958355	576
+14	1597	9.385002904628	576
+14	1665	9.720109115576	576
+14	1704	9.852792971579	576
+14	1741	9.885002972018	576
+14	1810	10.220109086494	576
+14	1845	10.352792977992	576
+14	1888	10.38500300238	576
+14	1950	10.7201090754	576
+14	1989	10.852792980059	576
+14	2032	10.885002997356	576
+14	2090	11.220109080201	576
+14	2136	11.35279297997	576
+14	2229	11.720109080688	576
+14	2280	11.852792995788	576
+14	2374	12.220109081471	576
+14	2421	12.3527930215	576
+14	2514	12.720109078543	576
+14	2565	12.852793058365	576
+15	260	3.947009828233	576
+15	327	4.447009828233	576
+15	389	4.947009828233	576
+15	456	5.447009828233	576
+15	597	5.947009828233	576
+15	742	6.447009828233	576
+15	882	6.947009828233	576
+15	1027	7.447009828233	576
+15	1167	7.947009828233	576
+15	2167	11.447009828233	576
+15	2307	11.947009828233	576
+15	2452	12.447009828233	576
+15	2592	12.947009828233	576
+16	256	3.947009828233	576
+16	323	4.447009828233	576
+16	385	4.947009828233	576
+16	452	5.447009828233	576
+16	593	5.947009828233	576
+16	738	6.447009828233	576
+16	878	6.947009828233	576
+16	1023	7.447009828233	576
+16	1163	7.947009828233	576
+16	2163	11.447009828233	576
+16	2303	11.947009828233	576
+16	2448	12.447009828233	576
+16	2588	12.947009828233	576
+17	519	5.720108709309	576
+17	577	5.885002786212	576
+17	676	6.220108775948	576
+17	717	6.352792806229	576
+17	816	6.720108956049	576
+17	861	6.852793077071	576
+17	961	7.220109098001	576
+17	1002	7.352793299147	576
+17	1095	7.7201091537	576
+17	1146	7.852793406109	576
+17	1235	8.220109105659	576
+17	1275	8.352792910109	576
+17	1312	8.38500278405	576
+17	1380	8.720109156748	576
+17	1419	8.852792934538	576
+17	1456	8.885002826755	576
+17	1525	9.220109149724	576
+17	1560	9.352792958355	576
+17	1597	9.385002904628	576
+17	1665	9.720109115576	576
+17	1704	9.852792971579	576
+17	1741	9.885002972018	576
+17	1810	10.220109086494	576
+17	1845	10.352792977992	576
+17	1888	10.38500300238	576
+17	1950	10.7201090754	576
+17	1989	10.852792980059	576
+17	2032	10.885002997356	576
+17	2090	11.220109080201	576
+17	2136	11.35279297997	576
+17	2229	11.720109080688	576
+17	2280	11.852792995788	576
+17	2374	12.220109081471	576
+17	2421	12.3527930215	576
+17	2514	12.720109078543	576
+17	2565	12.852793058365	576
 18	0	0	0
 18	0	0	2
+18	261	3.947009828233	3
+18	270	3.947231828233	2
+18	328	4.447009828233	3
+18	337	4.447231828233	2
+18	390	4.947009828233	3
+18	399	4.947231828233	2
+18	457	5.447009828233	3
+18	466	5.447231828233	2
+18	598	5.947009828233	3
+18	604	5.947231828233	2
+18	743	6.447009828233	3
+18	749	6.447231828233	2
+18	883	6.947009828233	3
+18	889	6.947231828233	2
+18	1028	7.447009828233	3
+18	1034	7.447231828233	2
+18	1168	7.947009828233	3
+18	1174	7.947231828233	2
+18	2168	11.447009828233	3
+18	2174	11.447231828233	2
+18	2308	11.947009828233	3
+18	2314	11.947231828233	2
+18	2453	12.447009828233	3
+18	2459	12.447231828233	2
+18	2593	12.947009828233	3
+18	2599	12.947231828233	2
 19	0	0	1
+19	261	3.947009828233	0
+19	270	3.947231828233	1
+19	328	4.447009828233	0
+19	337	4.447231828233	1
+19	390	4.947009828233	0
+19	399	4.947231828233	1
+19	457	5.447009828233	0
+19	466	5.447231828233	1
+19	511	5.719886709309	3
+19	515	5.720108709309	1
+19	561	5.884780786212	3
+19	576	5.885002786212	1
+19	598	5.947009828233	0
+19	604	5.947231828233	1
+19	660	6.219886775948	3
+19	675	6.220108775948	1
+19	701	6.352570806229	3
+19	716	6.352792806229	1
+19	743	6.447009828233	0
+19	749	6.447231828233	1
+19	800	6.719886956049	3
+19	815	6.720108956049	1
+19	845	6.852571077071	3
+19	860	6.852793077071	1
+19	883	6.947009828233	0
+19	889	6.947231828233	1
+19	945	7.219887098001	3
+19	960	7.220109098001	1
+19	986	7.352571299147	3
+19	1001	7.352793299147	1
+19	1028	7.447009828233	0
+19	1034	7.447231828233	1
+19	1084	7.7198871537	3
+19	1094	7.7201091537	1
+19	1130	7.852571406109	3
+19	1145	7.852793406109	1
+19	1168	7.947009828233	0
+19	1174	7.947231828233	1
+19	1228	8.219887105659	3
+19	1233	8.220109105659	1
+19	1269	8.352570910109	3
+19	1274	8.352792910109	1
+19	1306	8.38478078405	3
+19	1311	8.38500278405	1
+19	1369	8.719887156748	3
+19	1379	8.720109156748	1
+19	1413	8.852570934538	3
+19	1418	8.852792934538	1
+19	1450	8.884780826755	3
+19	1455	8.885002826755	1
+19	1514	9.219887149724	3
+19	1524	9.220109149724	1
+19	1554	9.352570958355	3
+19	1559	9.352792958355	1
+19	1591	9.384780904628	3
+19	1596	9.385002904628	1
+19	1654	9.719887115576	3
+19	1664	9.720109115576	1
+19	1698	9.852570971579	3
+19	1703	9.852792971579	1
+19	1735	9.884780972018	3
+19	1740	9.885002972018	1
+19	1799	10.219887086494	3
+19	1809	10.220109086494	1
+19	1839	10.352570977992	3
+19	1844	10.352792977992	1
+19	1877	10.38478100238	3
+19	1887	10.38500300238	1
+19	1939	10.7198870754	3
+19	1949	10.7201090754	1
+19	1983	10.852570980059	3
+19	1988	10.852792980059	1
+19	2021	10.884780997356	3
+19	2031	10.885002997356	1
+19	2083	11.219887080201	3
+19	2088	11.220109080201	1
+19	2125	11.35257097997	3
+19	2135	11.35279297997	1
+19	2168	11.447009828233	0
+19	2174	11.447231828233	1
+19	2223	11.719887080688	3
+19	2228	11.720109080688	1
+19	2269	11.852570995788	3
+19	2279	11.852792995788	1
+19	2308	11.947009828233	0
+19	2314	11.947231828233	1
+19	2368	12.219887081471	3
+19	2373	12.220109081471	1
+19	2410	12.3525710215	3
+19	2420	12.3527930215	1
+19	2453	12.447009828233	0
+19	2459	12.447231828233	1
+19	2508	12.719887078543	3
+19	2513	12.720109078543	1
+19	2554	12.852571058365	3
+19	2564	12.852793058365	1
+19	2593	12.947009828233	0
+19	2599	12.947231828233	1
+20	261	3.947009828233	1
+20	262	3.947009828233	2
+20	266	3.947231828233	1
+20	270	3.947231828233	0
+20	328	4.447009828233	1
+20	329	4.447009828233	2
+20	333	4.447231828233	1
+20	337	4.447231828233	0
+20	390	4.947009828233	1
+20	391	4.947009828233	2
+20	395	4.947231828233	1
+20	399	4.947231828233	0
+20	457	5.447009828233	1
+20	458	5.447009828233	2
+20	462	5.447231828233	1
+20	466	5.447231828233	0
+20	598	5.947009828233	1
+20	599	5.947009828233	2
+20	603	5.947231828233	1
+20	604	5.947231828233	0
+20	743	6.447009828233	1
+20	744	6.447009828233	2
+20	748	6.447231828233	1
+20	749	6.447231828233	0
+20	883	6.947009828233	1
+20	884	6.947009828233	2
+20	888	6.947231828233	1
+20	889	6.947231828233	0
+20	1028	7.447009828233	1
+20	1029	7.447009828233	2
+20	1033	7.447231828233	1
+20	1034	7.447231828233	0
+20	1168	7.947009828233	1
+20	1169	7.947009828233	2
+20	1173	7.947231828233	1
+20	1174	7.947231828233	0
+20	2168	11.447009828233	1
+20	2169	11.447009828233	2
+20	2173	11.447231828233	1
+20	2174	11.447231828233	0
+20	2308	11.947009828233	1
+20	2309	11.947009828233	2
+20	2313	11.947231828233	1
+20	2314	11.947231828233	0
+20	2453	12.447009828233	1
+20	2454	12.447009828233	2
+20	2458	12.447231828233	1
+20	2459	12.447231828233	0
+20	2593	12.947009828233	1
+20	2594	12.947009828233	2
+20	2598	12.947231828233	1
+20	2599	12.947231828233	0
 21	0	0	0
 22	0	0	0
 22	0	0	0
 22	0	0	0
 22	0	0	0
+22	256	3.947009828233	0
+22	256	3.947009828233	2
+22	258	3.947009828233	2
+22	258	3.947009828233	3
+22	261	3.947009828233	3
+22	261	3.947009828233	3
+22	266	3.947231828233	3
+22	266	3.947231828233	0
+22	270	3.947231828233	0
+22	270	3.947231828233	0
+22	323	4.447009828233	0
+22	323	4.447009828233	2
+22	325	4.447009828233	2
+22	325	4.447009828233	3
+22	328	4.447009828233	3
+22	328	4.447009828233	3
+22	333	4.447231828233	3
+22	333	4.447231828233	0
+22	337	4.447231828233	0
+22	337	4.447231828233	0
+22	385	4.947009828233	0
+22	385	4.947009828233	2
+22	387	4.947009828233	2
+22	387	4.947009828233	3
+22	390	4.947009828233	3
+22	390	4.947009828233	3
+22	395	4.947231828233	3
+22	395	4.947231828233	0
+22	399	4.947231828233	0
+22	399	4.947231828233	0
+22	452	5.447009828233	0
+22	452	5.447009828233	2
+22	454	5.447009828233	2
+22	454	5.447009828233	3
+22	457	5.447009828233	3
+22	457	5.447009828233	3
+22	462	5.447231828233	3
+22	462	5.447231828233	0
+22	466	5.447231828233	0
+22	466	5.447231828233	0
+22	511	5.719886709309	0
+22	511	5.719886709309	0
+22	515	5.720108709309	0
+22	515	5.720108709309	0
+22	561	5.884780786212	0
+22	561	5.884780786212	0
+22	576	5.885002786212	0
+22	576	5.885002786212	0
+22	593	5.947009828233	0
+22	593	5.947009828233	2
+22	595	5.947009828233	2
+22	595	5.947009828233	3
+22	598	5.947009828233	3
+22	598	5.947009828233	3
+22	603	5.947231828233	3
+22	603	5.947231828233	0
+22	604	5.947231828233	0
+22	604	5.947231828233	0
+22	660	6.219886775948	0
+22	660	6.219886775948	0
+22	675	6.220108775948	0
+22	675	6.220108775948	0
+22	701	6.352570806229	0
+22	701	6.352570806229	0
+22	716	6.352792806229	0
+22	716	6.352792806229	0
+22	738	6.447009828233	0
+22	738	6.447009828233	2
+22	740	6.447009828233	2
+22	740	6.447009828233	3
+22	743	6.447009828233	3
+22	743	6.447009828233	3
+22	748	6.447231828233	3
+22	748	6.447231828233	0
+22	749	6.447231828233	0
+22	749	6.447231828233	0
+22	800	6.719886956049	0
+22	800	6.719886956049	0
+22	815	6.720108956049	0
+22	815	6.720108956049	0
+22	845	6.852571077071	0
+22	845	6.852571077071	0
+22	860	6.852793077071	0
+22	860	6.852793077071	0
+22	878	6.947009828233	0
+22	878	6.947009828233	2
+22	880	6.947009828233	2
+22	880	6.947009828233	3
+22	883	6.947009828233	3
+22	883	6.947009828233	3
+22	888	6.947231828233	3
+22	888	6.947231828233	0
+22	889	6.947231828233	0
+22	889	6.947231828233	0
+22	945	7.219887098001	0
+22	945	7.219887098001	0
+22	960	7.220109098001	0
+22	960	7.220109098001	0
+22	986	7.352571299147	0
+22	986	7.352571299147	0
+22	1001	7.352793299147	0
+22	1001	7.352793299147	0
+22	1023	7.447009828233	0
+22	1023	7.447009828233	2
+22	1025	7.447009828233	2
+22	1025	7.447009828233	3
+22	1028	7.447009828233	3
+22	1028	7.447009828233	3
+22	1033	7.447231828233	3
+22	1033	7.447231828233	0
+22	1034	7.447231828233	0
+22	1034	7.447231828233	0
+22	1084	7.7198871537	0
+22	1084	7.7198871537	0
+22	1094	7.7201091537	0
+22	1094	7.7201091537	0
+22	1130	7.852571406109	0
+22	1130	7.852571406109	0
+22	1145	7.852793406109	0
+22	1145	7.852793406109	0
+22	1163	7.947009828233	0
+22	1163	7.947009828233	2
+22	1165	7.947009828233	2
+22	1165	7.947009828233	3
+22	1168	7.947009828233	3
+22	1168	7.947009828233	3
+22	1173	7.947231828233	3
+22	1173	7.947231828233	0
+22	1174	7.947231828233	0
+22	1174	7.947231828233	0
+22	1228	8.219887105659	0
+22	1228	8.219887105659	0
+22	1233	8.220109105659	0
+22	1233	8.220109105659	0
+22	1269	8.352570910109	0
+22	1269	8.352570910109	0
+22	1274	8.352792910109	0
+22	1274	8.352792910109	0
+22	1306	8.38478078405	0
+22	1306	8.38478078405	0
+22	1311	8.38500278405	0
+22	1311	8.38500278405	0
+22	1369	8.719887156748	0
+22	1369	8.719887156748	0
+22	1379	8.720109156748	0
+22	1379	8.720109156748	0
+22	1413	8.852570934538	0
+22	1413	8.852570934538	0
+22	1418	8.852792934538	0
+22	1418	8.852792934538	0
+22	1450	8.884780826755	0
+22	1450	8.884780826755	0
+22	1455	8.885002826755	0
+22	1455	8.885002826755	0
+22	1514	9.219887149724	0
+22	1514	9.219887149724	0
+22	1524	9.220109149724	0
+22	1524	9.220109149724	0
+22	1554	9.352570958355	0
+22	1554	9.352570958355	0
+22	1559	9.352792958355	0
+22	1559	9.352792958355	0
+22	1591	9.384780904628	0
+22	1591	9.384780904628	0
+22	1596	9.385002904628	0
+22	1596	9.385002904628	0
+22	1654	9.719887115576	0
+22	1654	9.719887115576	0
+22	1664	9.720109115576	0
+22	1664	9.720109115576	0
+22	1698	9.852570971579	0
+22	1698	9.852570971579	0
+22	1703	9.852792971579	0
+22	1703	9.852792971579	0
+22	1735	9.884780972018	0
+22	1735	9.884780972018	0
+22	1740	9.885002972018	0
+22	1740	9.885002972018	0
+22	1799	10.219887086494	0
+22	1799	10.219887086494	0
+22	1809	10.220109086494	0
+22	1809	10.220109086494	0
+22	1839	10.352570977992	0
+22	1839	10.352570977992	0
+22	1844	10.352792977992	0
+22	1844	10.352792977992	0
+22	1877	10.38478100238	0
+22	1877	10.38478100238	0
+22	1887	10.38500300238	0
+22	1887	10.38500300238	0
+22	1939	10.7198870754	0
+22	1939	10.7198870754	0
+22	1949	10.7201090754	0
+22	1949	10.7201090754	0
+22	1983	10.852570980059	0
+22	1983	10.852570980059	0
+22	1988	10.852792980059	0
+22	1988	10.852792980059	0
+22	2021	10.884780997356	0
+22	2021	10.884780997356	0
+22	2031	10.885002997356	0
+22	2031	10.885002997356	0
+22	2083	11.219887080201	0
+22	2083	11.219887080201	0
+22	2088	11.220109080201	0
+22	2088	11.220109080201	0
+22	2125	11.35257097997	0
+22	2125	11.35257097997	0
+22	2135	11.35279297997	0
+22	2135	11.35279297997	0
+22	2163	11.447009828233	0
+22	2163	11.447009828233	2
+22	2165	11.447009828233	2
+22	2165	11.447009828233	3
+22	2168	11.447009828233	3
+22	2168	11.447009828233	3
+22	2173	11.447231828233	3
+22	2173	11.447231828233	0
+22	2174	11.447231828233	0
+22	2174	11.447231828233	0
+22	2223	11.719887080688	0
+22	2223	11.719887080688	0
+22	2228	11.720109080688	0
+22	2228	11.720109080688	0
+22	2269	11.852570995788	0
+22	2269	11.852570995788	0
+22	2279	11.852792995788	0
+22	2279	11.852792995788	0
+22	2303	11.947009828233	0
+22	2303	11.947009828233	2
+22	2305	11.947009828233	2
+22	2305	11.947009828233	3
+22	2308	11.947009828233	3
+22	2308	11.947009828233	3
+22	2313	11.947231828233	3
+22	2313	11.947231828233	0
+22	2314	11.947231828233	0
+22	2314	11.947231828233	0
+22	2368	12.219887081471	0
+22	2368	12.219887081471	0
+22	2373	12.220109081471	0
+22	2373	12.220109081471	0
+22	2410	12.3525710215	0
+22	2410	12.3525710215	0
+22	2420	12.3527930215	0
+22	2420	12.3527930215	0
+22	2448	12.447009828233	0
+22	2448	12.447009828233	2
+22	2450	12.447009828233	2
+22	2450	12.447009828233	3
+22	2453	12.447009828233	3
+22	2453	12.447009828233	3
+22	2458	12.447231828233	3
+22	2458	12.447231828233	0
+22	2459	12.447231828233	0
+22	2459	12.447231828233	0
+22	2508	12.719887078543	0
+22	2508	12.719887078543	0
+22	2513	12.720109078543	0
+22	2513	12.720109078543	0
+22	2554	12.852571058365	0
+22	2554	12.852571058365	0
+22	2564	12.852793058365	0
+22	2564	12.852793058365	0
+22	2588	12.947009828233	0
+22	2588	12.947009828233	2
+22	2590	12.947009828233	2
+22	2590	12.947009828233	3
+22	2593	12.947009828233	3
+22	2593	12.947009828233	3
+22	2598	12.947231828233	3
+22	2598	12.947231828233	0
+22	2599	12.947231828233	0
+22	2599	12.947231828233	0
+23	555	5.884780782412	512
+23	621	5.94723183812	512
+23	1244	8.220109105659	512
+23	1285	8.352792910838	512
+23	1302	8.384780782412	512
+23	1378	8.720109133257	512
+23	1429	8.852792971805	512
+23	1446	8.884780782412	512
+23	1523	9.220109057146	512
+23	1570	9.352793070222	512
+23	1587	9.384780782412	512
+23	1663	9.720108959629	512
+23	1714	9.852793151347	512
+23	1731	9.884780782412	512
+23	1808	10.220108904946	512
+23	1855	10.352793189159	512
+23	1872	10.384780782412	512
+23	1948	10.720108906242	512
+23	1999	10.852793181959	512
+23	2016	10.884780782412	512
+24	544	5.884780782412	512
+24	1293	8.384780782412	512
+24	1437	8.884780782412	512
+24	1578	9.384780782412	512
+24	1722	9.884780782412	512
+24	1863	10.384780782412	512
+24	2007	10.884780782412	512
+25	555	5.884780782412	0
+25	621	5.94723183812	0.000222009887
+25	1244	8.220109105659	0.00022239635
+25	1285	8.352792910838	0.000222235804
+25	1302	8.384780782412	0
+25	1378	8.720109133257	0.000222423948
+25	1429	8.852792971805	0.000222296771
+25	1446	8.884780782412	0
+25	1523	9.220109057146	0.000222347837
+25	1570	9.352793070222	0.000222395188
+25	1587	9.384780782412	0
+25	1663	9.720108959629	0.00022225032
+25	1714	9.852793151347	0.000222476313
+25	1731	9.884780782412	0
+25	1808	10.220108904946	0.000222195637
+25	1855	10.352793189159	0.000222514125
+25	1872	10.384780782412	0
+25	1948	10.720108906242	0.000222196933
+25	1999	10.852793181959	0.000222506925
+25	2016	10.884780782412	0
+27	547	5.884780782412	520
+27	1294	8.384780782412	520
+27	1438	8.884780782412	520
+27	1579	9.384780782412	520
+27	1723	9.884780782412	520
+27	1864	10.384780782412	520
+27	2008	10.884780782412	520
+28	280	3.947231828233	520
+28	347	4.447231828233	520
+28	409	4.947231828233	520
+28	476	5.447231828233	520
+28	529	5.720108709309	520
+28	553	5.884780782412	520
+28	619	5.94723183812	520
+28	671	6.22010871917	520
+28	708	6.352792677308	520
+28	760	6.447231995322	520
+28	807	6.720108759051	520
+28	852	6.852792754598	520
+28	900	6.947232188304	520
+28	952	7.220108860006	520
+28	993	7.352792833242	520
+28	1045	7.447232320878	520
+28	1092	7.720108995004	520
+28	1137	7.852792881403	520
+28	1185	7.947232359352	520
+28	1242	8.220109105659	520
+28	1284	8.352792910838	520
+28	1300	8.384780782412	520
+28	1377	8.720109133257	520
+28	1428	8.852792971805	520
+28	1444	8.884780782412	520
+28	1522	9.220109057146	520
+28	1569	9.352793070222	520
+28	1585	9.384780782412	520
+28	1662	9.720108959629	520
+28	1713	9.852793151347	520
+28	1729	9.884780782412	520
+28	1807	10.220108904946	520
+28	1854	10.352793189159	520
+28	1870	10.384780782412	520
+28	1947	10.720108906242	520
+28	1998	10.852793181959	520
+28	2014	10.884780782412	520
+28	2097	11.220109080201	520
+28	2133	11.352792979351	520
+28	2179	11.447231830847	520
+28	2238	11.720109093386	520
+28	2277	11.852792975923	520
+28	2319	11.947231853647	520
+28	2383	12.220109123875	520
+28	2418	12.352792969882	520
+28	2464	12.447231887119	520
+28	2523	12.720109160384	520
+28	2562	12.85279296394	520
+28	2604	12.947231931941	520
+29	553	5.884780782412	1
+29	619	5.94723183812	2
+29	671	6.22010871917	3
+29	708	6.352792677308	4
+29	760	6.447231995322	5
+29	807	6.720108759051	6
+29	852	6.852792754598	7
+29	900	6.947232188304	8
+29	952	7.220108860006	9
+29	993	7.352792833242	10
+29	1045	7.447232320878	11
+29	1092	7.720108995004	12
+29	1137	7.852792881403	13
+29	1185	7.947232359352	14
+29	1242	8.220109105659	15
+29	1284	8.352792910838	16
+29	1300	8.384780782412	17
+29	1377	8.720109133257	18
+29	1428	8.852792971805	19
+29	1444	8.884780782412	20
+29	1522	9.220109057146	21
+29	1569	9.352793070222	22
+29	1585	9.384780782412	23
+29	1662	9.720108959629	24
+29	1713	9.852793151347	25
+29	1729	9.884780782412	26
+29	1807	10.220108904946	27
+29	1854	10.352793189159	28
+29	1870	10.384780782412	29
+29	1947	10.720108906242	30
+29	1998	10.852793181959	31
+29	2014	10.884780782412	32
+29	2097	11.220109080201	33
+29	2133	11.352792979351	34
+29	2179	11.447231830847	35
+29	2238	11.720109093386	36
+29	2277	11.852792975923	37
+29	2319	11.947231853647	38
+29	2383	12.220109123875	39
+29	2418	12.352792969882	40
+29	2464	12.447231887119	41
+29	2523	12.720109160384	42
+29	2562	12.85279296394	43
+29	2604	12.947231931941	44
+30	280	3.947231828233	1
+30	347	4.447231828233	2
+30	409	4.947231828233	3
+30	476	5.447231828233	4
+30	529	5.720108709309	5
+35	549	5.884780782412	540
+35	1296	8.384780782412	540
+35	1440	8.884780782412	540
+35	1581	9.384780782412	540
+35	1725	9.884780782412	540
+35	1866	10.384780782412	540
+35	2010	10.884780782412	540
+36	549	5.884780782412	540
+36	1296	8.384780782412	540
+36	1440	8.884780782412	540
+36	1581	9.384780782412	540
+36	1725	9.884780782412	540
+36	1866	10.384780782412	540
+36	2010	10.884780782412	540
+37	271	3.947231828233	576
+37	338	4.447231828233	576
+37	400	4.947231828233	576
+37	467	5.447231828233	576
+37	520	5.720108709309	576
+37	613	5.94723183812	576
+37	665	6.22010871917	576
+37	705	6.352792677308	576
+37	757	6.447231995322	576
+37	804	6.720108759051	576
+37	849	6.852792754598	576
+37	897	6.947232188304	576
+37	949	7.220108860006	576
+37	990	7.352792833242	576
+37	1042	7.447232320878	576
+37	1089	7.720108995004	576
+37	1134	7.852792881403	576
+37	1182	7.947232359352	576
+37	1236	8.220109105659	576
+37	1281	8.352792910838	576
+37	1374	8.720109133257	576
+37	1425	8.852792971805	576
+37	1519	9.220109057146	576
+37	1566	9.352793070222	576
+37	1659	9.720108959629	576
+37	1710	9.852793151347	576
+37	1804	10.220108904946	576
+37	1851	10.352793189159	576
+37	1944	10.720108906242	576
+37	1995	10.852793181959	576
+37	2091	11.220109080201	576
+37	2130	11.352792979351	576
+37	2176	11.447231830847	576
+37	2235	11.720109093386	576
+37	2274	11.852792975923	576
+37	2316	11.947231853647	576
+37	2380	12.220109123875	576
+37	2415	12.352792969882	576
+37	2461	12.447231887119	576
+37	2520	12.720109160384	576
+37	2559	12.85279296394	576
+37	2601	12.947231931941	576
+38	556	5.884780782412	576
+38	1303	8.384780782412	576
+38	1447	8.884780782412	576
+38	1588	9.384780782412	576
+38	1732	9.884780782412	576
+38	1873	10.384780782412	576
+38	2017	10.884780782412	576
+39	552	5.884780782412	576
+39	1299	8.384780782412	576
+39	1443	8.884780782412	576
+39	1584	9.384780782412	576
+39	1728	9.884780782412	576
+39	1869	10.384780782412	576
+39	2013	10.884780782412	576
+40	271	3.947231828233	576
+40	338	4.447231828233	576
+40	400	4.947231828233	576
+40	467	5.447231828233	576
+40	520	5.720108709309	576
+40	613	5.94723183812	576
+40	665	6.22010871917	576
+40	705	6.352792677308	576
+40	757	6.447231995322	576
+40	804	6.720108759051	576
+40	849	6.852792754598	576
+40	897	6.947232188304	576
+40	949	7.220108860006	576
+40	990	7.352792833242	576
+40	1042	7.447232320878	576
+40	1089	7.720108995004	576
+40	1134	7.852792881403	576
+40	1182	7.947232359352	576
+40	1236	8.220109105659	576
+40	1281	8.352792910838	576
+40	1374	8.720109133257	576
+40	1425	8.852792971805	576
+40	1519	9.220109057146	576
+40	1566	9.352793070222	576
+40	1659	9.720108959629	576
+40	1710	9.852793151347	576
+40	1804	10.220108904946	576
+40	1851	10.352793189159	576
+40	1944	10.720108906242	576
+40	1995	10.852793181959	576
+40	2091	11.220109080201	576
+40	2130	11.352792979351	576
+40	2176	11.447231830847	576
+40	2235	11.720109093386	576
+40	2274	11.852792975923	576
+40	2316	11.947231853647	576
+40	2380	12.220109123875	576
+40	2415	12.352792969882	576
+40	2461	12.447231887119	576
+40	2520	12.720109160384	576
+40	2559	12.85279296394	576
+40	2601	12.947231931941	576
 41	0	0	0
 41	0	0	2
+41	557	5.884780782412	3
+41	565	5.885002782412	2
+41	1304	8.384780782412	3
+41	1310	8.385002782412	2
+41	1448	8.884780782412	3
+41	1454	8.885002782412	2
+41	1589	9.384780782412	3
+41	1595	9.385002782412	2
+41	1733	9.884780782412	3
+41	1739	9.885002782412	2
+41	1874	10.384780782412	3
+41	1880	10.385002782412	2
+41	2018	10.884780782412	3
+41	2024	10.885002782412	2
 42	0	0	1
+42	263	3.947009828233	3
+42	267	3.947231828233	1
+42	330	4.447009828233	3
+42	334	4.447231828233	1
+42	392	4.947009828233	3
+42	396	4.947231828233	1
+42	459	5.447009828233	3
+42	463	5.447231828233	1
+42	512	5.719886709309	3
+42	516	5.720108709309	1
+42	557	5.884780782412	0
+42	565	5.885002782412	1
+42	601	5.94700983812	3
+42	611	5.94723183812	1
+42	658	6.21988671917	3
+42	663	6.22010871917	1
+42	699	6.352570677308	3
+42	704	6.352792677308	1
+42	746	6.447009995322	3
+42	756	6.447231995322	1
+42	798	6.719886759051	3
+42	803	6.720108759051	1
+42	843	6.852570754598	3
+42	848	6.852792754598	1
+42	886	6.947010188304	3
+42	896	6.947232188304	1
+42	943	7.219886860006	3
+42	948	7.220108860006	1
+42	984	7.352570833242	3
+42	989	7.352792833242	1
+42	1031	7.447010320878	3
+42	1041	7.447232320878	1
+42	1083	7.719886995004	3
+42	1088	7.720108995004	1
+42	1128	7.852570881403	3
+42	1133	7.852792881403	1
+42	1171	7.947010359352	3
+42	1181	7.947232359352	1
+42	1229	8.219887105659	3
+42	1234	8.220109105659	1
+42	1270	8.352570910838	3
+42	1280	8.352792910838	1
+42	1304	8.384780782412	0
+42	1310	8.385002782412	1
+42	1368	8.719887133257	3
+42	1373	8.720109133257	1
+42	1414	8.852570971805	3
+42	1424	8.852792971805	1
+42	1448	8.884780782412	0
+42	1454	8.885002782412	1
+42	1513	9.219887057146	3
+42	1518	9.220109057146	1
+42	1555	9.352571070222	3
+42	1565	9.352793070222	1
+42	1589	9.384780782412	0
+42	1595	9.385002782412	1
+42	1653	9.719886959629	3
+42	1658	9.720108959629	1
+42	1699	9.852571151347	3
+42	1709	9.852793151347	1
+42	1733	9.884780782412	0
+42	1739	9.885002782412	1
+42	1798	10.219886904946	3
+42	1803	10.220108904946	1
+42	1840	10.352571189159	3
+42	1850	10.352793189159	1
+42	1874	10.384780782412	0
+42	1880	10.385002782412	1
+42	1938	10.719886906242	3
+42	1943	10.720108906242	1
+42	1984	10.852571181959	3
+42	1994	10.852793181959	1
+42	2018	10.884780782412	0
+42	2024	10.885002782412	1
+42	2084	11.219887080201	3
+42	2089	11.220109080201	1
+42	2124	11.352570979351	3
+42	2129	11.352792979351	1
+42	2170	11.447009830847	3
+42	2175	11.447231830847	1
+42	2224	11.719887093386	3
+42	2234	11.720109093386	1
+42	2268	11.852570975923	3
+42	2273	11.852792975923	1
+42	2310	11.947009853647	3
+42	2315	11.947231853647	1
+42	2369	12.219887123875	3
+42	2379	12.220109123875	1
+42	2409	12.352570969882	3
+42	2414	12.352792969882	1
+42	2455	12.447009887119	3
+42	2460	12.447231887119	1
+42	2509	12.719887160384	3
+42	2519	12.720109160384	1
+42	2553	12.85257096394	3
+42	2558	12.85279296394	1
+42	2595	12.947009931941	3
+42	2600	12.947231931941	1
+43	557	5.884780782412	1
+43	558	5.884780782412	2
+43	562	5.885002782412	1
+43	565	5.885002782412	0
+43	1304	8.384780782412	1
+43	1305	8.384780782412	2
+43	1309	8.385002782412	1
+43	1310	8.385002782412	0
+43	1448	8.884780782412	1
+43	1449	8.884780782412	2
+43	1453	8.885002782412	1
+43	1454	8.885002782412	0
+43	1589	9.384780782412	1
+43	1590	9.384780782412	2
+43	1594	9.385002782412	1
+43	1595	9.385002782412	0
+43	1733	9.884780782412	1
+43	1734	9.884780782412	2
+43	1738	9.885002782412	1
+43	1739	9.885002782412	0
+43	1874	10.384780782412	1
+43	1875	10.384780782412	2
+43	1879	10.385002782412	1
+43	1880	10.385002782412	0
+43	2018	10.884780782412	1
+43	2019	10.884780782412	2
+43	2023	10.885002782412	1
+43	2024	10.885002782412	0
 44	0	0	0
 45	0	0	0
 45	0	0	0
 45	0	0	0
 45	0	0	0
+45	263	3.947009828233	0
+45	263	3.947009828233	0
+45	267	3.947231828233	0
+45	267	3.947231828233	0
+45	330	4.447009828233	0
+45	330	4.447009828233	0
+45	334	4.447231828233	0
+45	334	4.447231828233	0
+45	392	4.947009828233	0
+45	392	4.947009828233	0
+45	396	4.947231828233	0
+45	396	4.947231828233	0
+45	459	5.447009828233	0
+45	459	5.447009828233	0
+45	463	5.447231828233	0
+45	463	5.447231828233	0
+45	512	5.719886709309	0
+45	512	5.719886709309	0
+45	516	5.720108709309	0
+45	516	5.720108709309	0
+45	552	5.884780782412	0
+45	552	5.884780782412	2
+45	554	5.884780782412	2
+45	554	5.884780782412	3
+45	557	5.884780782412	3
+45	557	5.884780782412	3
+45	562	5.885002782412	3
+45	562	5.885002782412	0
+45	565	5.885002782412	0
+45	565	5.885002782412	0
+45	601	5.94700983812	0
+45	601	5.94700983812	0
+45	611	5.94723183812	0
+45	611	5.94723183812	0
+45	658	6.21988671917	0
+45	658	6.21988671917	0
+45	663	6.22010871917	0
+45	663	6.22010871917	0
+45	699	6.352570677308	0
+45	699	6.352570677308	0
+45	704	6.352792677308	0
+45	704	6.352792677308	0
+45	746	6.447009995322	0
+45	746	6.447009995322	0
+45	756	6.447231995322	0
+45	756	6.447231995322	0
+45	798	6.719886759051	0
+45	798	6.719886759051	0
+45	803	6.720108759051	0
+45	803	6.720108759051	0
+45	843	6.852570754598	0
+45	843	6.852570754598	0
+45	848	6.852792754598	0
+45	848	6.852792754598	0
+45	886	6.947010188304	0
+45	886	6.947010188304	0
+45	896	6.947232188304	0
+45	896	6.947232188304	0
+45	943	7.219886860006	0
+45	943	7.219886860006	0
+45	948	7.220108860006	0
+45	948	7.220108860006	0
+45	984	7.352570833242	0
+45	984	7.352570833242	0
+45	989	7.352792833242	0
+45	989	7.352792833242	0
+45	1031	7.447010320878	0
+45	1031	7.447010320878	0
+45	1041	7.447232320878	0
+45	1041	7.447232320878	0
+45	1083	7.719886995004	0
+45	1083	7.719886995004	0
+45	1088	7.720108995004	0
+45	1088	7.720108995004	0
+45	1128	7.852570881403	0
+45	1128	7.852570881403	0
+45	1133	7.852792881403	0
+45	1133	7.852792881403	0
+45	1171	7.947010359352	0
+45	1171	7.947010359352	0
+45	1181	7.947232359352	0
+45	1181	7.947232359352	0
+45	1229	8.219887105659	0
+45	1229	8.219887105659	0
+45	1234	8.220109105659	0
+45	1234	8.220109105659	0
+45	1270	8.352570910838	0
+45	1270	8.352570910838	0
+45	1280	8.352792910838	0
+45	1280	8.352792910838	0
+45	1299	8.384780782412	0
+45	1299	8.384780782412	2
+45	1301	8.384780782412	2
+45	1301	8.384780782412	3
+45	1304	8.384780782412	3
+45	1304	8.384780782412	3
+45	1309	8.385002782412	3
+45	1309	8.385002782412	0
+45	1310	8.385002782412	0
+45	1310	8.385002782412	0
+45	1368	8.719887133257	0
+45	1368	8.719887133257	0
+45	1373	8.720109133257	0
+45	1373	8.720109133257	0
+45	1414	8.852570971805	0
+45	1414	8.852570971805	0
+45	1424	8.852792971805	0
+45	1424	8.852792971805	0
+45	1443	8.884780782412	0
+45	1443	8.884780782412	2
+45	1445	8.884780782412	2
+45	1445	8.884780782412	3
+45	1448	8.884780782412	3
+45	1448	8.884780782412	3
+45	1453	8.885002782412	3
+45	1453	8.885002782412	0
+45	1454	8.885002782412	0
+45	1454	8.885002782412	0
+45	1513	9.219887057146	0
+45	1513	9.219887057146	0
+45	1518	9.220109057146	0
+45	1518	9.220109057146	0
+45	1555	9.352571070222	0
+45	1555	9.352571070222	0
+45	1565	9.352793070222	0
+45	1565	9.352793070222	0
+45	1584	9.384780782412	0
+45	1584	9.384780782412	2
+45	1586	9.384780782412	2
+45	1586	9.384780782412	3
+45	1589	9.384780782412	3
+45	1589	9.384780782412	3
+45	1594	9.385002782412	3
+45	1594	9.385002782412	0
+45	1595	9.385002782412	0
+45	1595	9.385002782412	0
+45	1653	9.719886959629	0
+45	1653	9.719886959629	0
+45	1658	9.720108959629	0
+45	1658	9.720108959629	0
+45	1699	9.852571151347	0
+45	1699	9.852571151347	0
+45	1709	9.852793151347	0
+45	1709	9.852793151347	0
+45	1728	9.884780782412	0
+45	1728	9.884780782412	2
+45	1730	9.884780782412	2
+45	1730	9.884780782412	3
+45	1733	9.884780782412	3
+45	1733	9.884780782412	3
+45	1738	9.885002782412	3
+45	1738	9.885002782412	0
+45	1739	9.885002782412	0
+45	1739	9.885002782412	0
+45	1798	10.219886904946	0
+45	1798	10.219886904946	0
+45	1803	10.220108904946	0
+45	1803	10.220108904946	0
+45	1840	10.352571189159	0
+45	1840	10.352571189159	0
+45	1850	10.352793189159	0
+45	1850	10.352793189159	0
+45	1869	10.384780782412	0
+45	1869	10.384780782412	2
+45	1871	10.384780782412	2
+45	1871	10.384780782412	3
+45	1874	10.384780782412	3
+45	1874	10.384780782412	3
+45	1879	10.385002782412	3
+45	1879	10.385002782412	0
+45	1880	10.385002782412	0
+45	1880	10.385002782412	0
+45	1938	10.719886906242	0
+45	1938	10.719886906242	0
+45	1943	10.720108906242	0
+45	1943	10.720108906242	0
+45	1984	10.852571181959	0
+45	1984	10.852571181959	0
+45	1994	10.852793181959	0
+45	1994	10.852793181959	0
+45	2013	10.884780782412	0
+45	2013	10.884780782412	2
+45	2015	10.884780782412	2
+45	2015	10.884780782412	3
+45	2018	10.884780782412	3
+45	2018	10.884780782412	3
+45	2023	10.885002782412	3
+45	2023	10.885002782412	0
+45	2024	10.885002782412	0
+45	2024	10.885002782412	0
+45	2084	11.219887080201	0
+45	2084	11.219887080201	0
+45	2089	11.220109080201	0
+45	2089	11.220109080201	0
+45	2124	11.352570979351	0
+45	2124	11.352570979351	0
+45	2129	11.352792979351	0
+45	2129	11.352792979351	0
+45	2170	11.447009830847	0
+45	2170	11.447009830847	0
+45	2175	11.447231830847	0
+45	2175	11.447231830847	0
+45	2224	11.719887093386	0
+45	2224	11.719887093386	0
+45	2234	11.720109093386	0
+45	2234	11.720109093386	0
+45	2268	11.852570975923	0
+45	2268	11.852570975923	0
+45	2273	11.852792975923	0
+45	2273	11.852792975923	0
+45	2310	11.947009853647	0
+45	2310	11.947009853647	0
+45	2315	11.947231853647	0
+45	2315	11.947231853647	0
+45	2369	12.219887123875	0
+45	2369	12.219887123875	0
+45	2379	12.220109123875	0
+45	2379	12.220109123875	0
+45	2409	12.352570969882	0
+45	2409	12.352570969882	0
+45	2414	12.352792969882	0
+45	2414	12.352792969882	0
+45	2455	12.447009887119	0
+45	2455	12.447009887119	0
+45	2460	12.447231887119	0
+45	2460	12.447231887119	0
+45	2509	12.719887160384	0
+45	2509	12.719887160384	0
+45	2519	12.720109160384	0
+45	2519	12.720109160384	0
+45	2553	12.85257096394	0
+45	2553	12.85257096394	0
+45	2558	12.85279296394	0
+45	2558	12.85279296394	0
+45	2595	12.947009931941	0
+45	2595	12.947009931941	0
+45	2600	12.947231931941	0
+45	2600	12.947231931941	0
+46	674	6.22010871917	512
+46	695	6.352570675034	512
+46	767	6.447232004449	512
+46	814	6.72010880689	512
+46	839	6.852570675034	512
+46	907	6.947232280203	512
+46	959	7.220108984506	512
+46	980	7.352570675034	512
+46	1052	7.447232481173	512
+46	1105	7.72010916749	512
+46	1124	7.852570675034	512
+46	1192	7.947232563107	512
+46	1250	8.220109315948	512
+46	1265	8.352570675034	512
+46	1322	8.385003020258	512
+46	1390	8.720109399001	512
+46	1409	8.852570675034	512
+46	1466	8.885003085406	512
+46	1535	9.22010942533	512
+46	1550	9.352570675034	512
+46	1613	9.385003183729	512
+46	1675	9.720109409267	512
+46	1694	9.852570675034	512
+46	1757	9.885003262598	512
+46	1820	10.220109388111	512
+46	1835	10.352570675034	512
+46	1898	10.385003297229	512
+46	1960	10.720109380075	512
+46	1979	10.852570675034	512
+46	2042	10.885003287648	512
+46	2105	11.220109384881	512
+46	2120	11.352570675034	512
+46	2186	11.447232134798	512
+46	2245	11.720109395619	512
+46	2264	11.852570675034	512
+46	2326	11.947232153441	512
+46	2390	12.220109420312	512
+46	2405	12.352570675034	512
+46	2471	12.447232180825	512
+46	2530	12.720109450675	512
+46	2549	12.852570675034	512
+46	2617	12.947232219726	512
+47	686	6.352570675034	512
+47	830	6.852570675034	512
+47	971	7.352570675034	512
+47	1115	7.852570675034	512
+47	1256	8.352570675034	512
+47	1400	8.852570675034	512
+47	1541	9.352570675034	512
+47	1685	9.852570675034	512
+47	1826	10.352570675034	512
+47	1970	10.852570675034	512
+47	2111	11.352570675034	512
+47	2255	11.852570675034	512
+47	2396	12.352570675034	512
+47	2540	12.852570675034	512
+48	674	6.22010871917	0.000222009861
+48	695	6.352570675034	0
+48	767	6.447232004449	0.000222176216
+48	814	6.72010880689	0.000222097581
+48	839	6.852570675034	0
+48	907	6.947232280203	0.00022245197
+48	959	7.220108984506	0.000222275197
+48	980	7.352570675034	0
+48	1052	7.447232481173	0.00022265294
+48	1105	7.72010916749	0.000222458181
+48	1124	7.852570675034	0
+48	1192	7.947232563107	0.000222734874
+48	1250	8.220109315948	0.000222606639
+48	1265	8.352570675034	0
+48	1322	8.385003020258	0.000222237846
+48	1390	8.720109399001	0.000222689692
+48	1409	8.852570675034	0
+48	1466	8.885003085406	0.000222302994
+48	1535	9.22010942533	0.000222716021
+48	1550	9.352570675034	0
+48	1613	9.385003183729	0.000222401317
+48	1675	9.720109409267	0.000222699958
+48	1694	9.852570675034	0
+48	1757	9.885003262598	0.000222480186
+48	1820	10.220109388111	0.000222678802
+48	1835	10.352570675034	0
+48	1898	10.385003297229	0.000222514817
+48	1960	10.720109380075	0.000222670766
+48	1979	10.852570675034	0
+48	2042	10.885003287648	0.000222505236
+48	2105	11.220109384881	0.000222675572
+48	2120	11.352570675034	0
+48	2186	11.447232134798	0.000222306565
+48	2245	11.720109395619	0.00022268631
+48	2264	11.852570675034	0
+48	2326	11.947232153441	0.000222325208
+48	2390	12.220109420312	0.000222711003
+48	2405	12.352570675034	0
+48	2471	12.447232180825	0.000222352592
+48	2530	12.720109450675	0.000222741366
+48	2549	12.852570675034	0
+48	2617	12.947232219726	0.000222391493
+50	687	6.352570675034	520
+50	831	6.852570675034	520
+50	972	7.352570675034	520
+50	1116	7.852570675034	520
+50	1257	8.352570675034	520
+50	1401	8.852570675034	520
+50	1542	9.352570675034	520
+50	1686	9.852570675034	520
+50	1827	10.352570675034	520
+50	1971	10.852570675034	520
+50	2112	11.352570675034	520
+50	2256	11.852570675034	520
+50	2397	12.352570675034	520
+50	2541	12.852570675034	520
+51	281	3.947231828233	520
+51	348	4.447231828233	520
+51	410	4.947231828233	520
+51	477	5.447231828233	520
+51	530	5.720108709309	520
+51	572	5.885002782412	520
+51	620	5.94723183812	520
+51	672	6.22010871917	520
+51	693	6.352570675034	520
+51	766	6.447232004449	520
+51	813	6.72010880689	520
+51	837	6.852570675034	520
+51	906	6.947232280203	520
+51	958	7.220108984506	520
+51	978	7.352570675034	520
+51	1051	7.447232481173	520
+51	1104	7.72010916749	520
+51	1122	7.852570675034	520
+51	1191	7.947232563107	520
+51	1249	8.220109315948	520
+51	1263	8.352570675034	520
+51	1321	8.385003020258	520
+51	1389	8.720109399001	520
+51	1407	8.852570675034	520
+51	1465	8.885003085406	520
+51	1534	9.22010942533	520
+51	1548	9.352570675034	520
+51	1612	9.385003183729	520
+51	1674	9.720109409267	520
+51	1692	9.852570675034	520
+51	1756	9.885003262598	520
+51	1819	10.220109388111	520
+51	1833	10.352570675034	520
+51	1897	10.385003297229	520
+51	1959	10.720109380075	520
+51	1977	10.852570675034	520
+51	2041	10.885003287648	520
+51	2104	11.220109384881	520
+51	2118	11.352570675034	520
+51	2185	11.447232134798	520
+51	2244	11.720109395619	520
+51	2262	11.852570675034	520
+51	2325	11.947232153441	520
+51	2389	12.220109420312	520
+51	2403	12.352570675034	520
+51	2470	12.447232180825	520
+51	2529	12.720109450675	520
+51	2547	12.852570675034	520
+51	2616	12.947232219726	520
+52	572	5.885002782412	1
+52	620	5.94723183812	2
+52	672	6.22010871917	3
+52	693	6.352570675034	4
+52	766	6.447232004449	5
+52	813	6.72010880689	6
+52	837	6.852570675034	7
+52	906	6.947232280203	8
+52	958	7.220108984506	9
+52	978	7.352570675034	10
+52	1051	7.447232481173	11
+52	1104	7.72010916749	12
+52	1122	7.852570675034	13
+52	1191	7.947232563107	14
+52	1249	8.220109315948	15
+52	1263	8.352570675034	16
+52	1321	8.385003020258	17
+52	1389	8.720109399001	18
+52	1407	8.852570675034	19
+52	1465	8.885003085406	20
+52	1534	9.22010942533	21
+52	1548	9.352570675034	22
+52	1612	9.385003183729	23
+52	1674	9.720109409267	24
+52	1692	9.852570675034	25
+52	1756	9.885003262598	26
+52	1819	10.220109388111	27
+52	1833	10.352570675034	28
+52	1897	10.385003297229	29
+52	1959	10.720109380075	30
+52	1977	10.852570675034	31
+52	2041	10.885003287648	32
+52	2104	11.220109384881	33
+52	2118	11.352570675034	34
+52	2185	11.447232134798	35
+52	2244	11.720109395619	36
+52	2262	11.852570675034	37
+52	2325	11.947232153441	38
+52	2389	12.220109420312	39
+52	2403	12.352570675034	40
+52	2470	12.447232180825	41
+52	2529	12.720109450675	42
+52	2547	12.852570675034	43
+52	2616	12.947232219726	44
+53	281	3.947231828233	1
+53	348	4.447231828233	2
+53	410	4.947231828233	3
+53	477	5.447231828233	4
+53	530	5.720108709309	5
+58	689	6.352570675034	540
+58	833	6.852570675034	540
+58	974	7.352570675034	540
+58	1118	7.852570675034	540
+58	1259	8.352570675034	540
+58	1403	8.852570675034	540
+58	1544	9.352570675034	540
+58	1688	9.852570675034	540
+58	1829	10.352570675034	540
+58	1973	10.852570675034	540
+58	2114	11.352570675034	540
+58	2258	11.852570675034	540
+58	2399	12.352570675034	540
+58	2543	12.852570675034	540
+59	689	6.352570675034	540
+59	833	6.852570675034	540
+59	974	7.352570675034	540
+59	1118	7.852570675034	540
+59	1259	8.352570675034	540
+59	1403	8.852570675034	540
+59	1544	9.352570675034	540
+59	1688	9.852570675034	540
+59	1829	10.352570675034	540
+59	1973	10.852570675034	540
+59	2114	11.352570675034	540
+59	2258	11.852570675034	540
+59	2399	12.352570675034	540
+59	2543	12.852570675034	540
+60	272	3.947231828233	576
+60	339	4.447231828233	576
+60	401	4.947231828233	576
+60	468	5.447231828233	576
+60	521	5.720108709309	576
+60	566	5.885002782412	576
+60	614	5.94723183812	576
+60	666	6.22010871917	576
+60	763	6.447232004449	576
+60	810	6.72010880689	576
+60	903	6.947232280203	576
+60	955	7.220108984506	576
+60	1048	7.447232481173	576
+60	1101	7.72010916749	576
+60	1188	7.947232563107	576
+60	1246	8.220109315948	576
+60	1318	8.385003020258	576
+60	1386	8.720109399001	576
+60	1462	8.885003085406	576
+60	1531	9.22010942533	576
+60	1609	9.385003183729	576
+60	1671	9.720109409267	576
+60	1753	9.885003262598	576
+60	1816	10.220109388111	576
+60	1894	10.385003297229	576
+60	1956	10.720109380075	576
+60	2038	10.885003287648	576
+60	2101	11.220109384881	576
+60	2182	11.447232134798	576
+60	2241	11.720109395619	576
+60	2322	11.947232153441	576
+60	2386	12.220109420312	576
+60	2467	12.447232180825	576
+60	2526	12.720109450675	576
+60	2613	12.947232219726	576
+61	696	6.352570675034	576
+61	840	6.852570675034	576
+61	981	7.352570675034	576
+61	1125	7.852570675034	576
+61	1266	8.352570675034	576
+61	1410	8.852570675034	576
+61	1551	9.352570675034	576
+61	1695	9.852570675034	576
+61	1836	10.352570675034	576
+61	1980	10.852570675034	576
+61	2121	11.352570675034	576
+61	2265	11.852570675034	576
+61	2406	12.352570675034	576
+61	2550	12.852570675034	576
+62	692	6.352570675034	576
+62	836	6.852570675034	576
+62	977	7.352570675034	576
+62	1121	7.852570675034	576
+62	1262	8.352570675034	576
+62	1406	8.852570675034	576
+62	1547	9.352570675034	576
+62	1691	9.852570675034	576
+62	1832	10.352570675034	576
+62	1976	10.852570675034	576
+62	2117	11.352570675034	576
+62	2261	11.852570675034	576
+62	2402	12.352570675034	576
+62	2546	12.852570675034	576
+63	272	3.947231828233	576
+63	339	4.447231828233	576
+63	401	4.947231828233	576
+63	468	5.447231828233	576
+63	521	5.720108709309	576
+63	566	5.885002782412	576
+63	614	5.94723183812	576
+63	666	6.22010871917	576
+63	763	6.447232004449	576
+63	810	6.72010880689	576
+63	903	6.947232280203	576
+63	955	7.220108984506	576
+63	1048	7.447232481173	576
+63	1101	7.72010916749	576
+63	1188	7.947232563107	576
+63	1246	8.220109315948	576
+63	1318	8.385003020258	576
+63	1386	8.720109399001	576
+63	1462	8.885003085406	576
+63	1531	9.22010942533	576
+63	1609	9.385003183729	576
+63	1671	9.720109409267	576
+63	1753	9.885003262598	576
+63	1816	10.220109388111	576
+63	1894	10.385003297229	576
+63	1956	10.720109380075	576
+63	2038	10.885003287648	576
+63	2101	11.220109384881	576
+63	2182	11.447232134798	576
+63	2241	11.720109395619	576
+63	2322	11.947232153441	576
+63	2386	12.220109420312	576
+63	2467	12.447232180825	576
+63	2526	12.720109450675	576
+63	2613	12.947232219726	576
 64	0	0	0
 64	0	0	2
+64	697	6.352570675034	3
+64	703	6.352792675034	2
+64	841	6.852570675034	3
+64	847	6.852792675034	2
+64	982	7.352570675034	3
+64	988	7.352792675034	2
+64	1126	7.852570675034	3
+64	1132	7.852792675034	2
+64	1267	8.352570675034	3
+64	1273	8.352792675034	2
+64	1411	8.852570675034	3
+64	1417	8.852792675034	2
+64	1552	9.352570675034	3
+64	1558	9.352792675034	2
+64	1696	9.852570675034	3
+64	1702	9.852792675034	2
+64	1837	10.352570675034	3
+64	1843	10.352792675034	2
+64	1981	10.852570675034	3
+64	1987	10.852792675034	2
+64	2122	11.352570675034	3
+64	2128	11.352792675034	2
+64	2266	11.852570675034	3
+64	2272	11.852792675034	2
+64	2407	12.352570675034	3
+64	2413	12.352792675034	2
+64	2551	12.852570675034	3
+64	2557	12.852792675034	2
 65	0	0	1
+65	264	3.947009828233	3
+65	268	3.947231828233	1
+65	331	4.447009828233	3
+65	335	4.447231828233	1
+65	393	4.947009828233	3
+65	397	4.947231828233	1
+65	460	5.447009828233	3
+65	464	5.447231828233	1
+65	513	5.719886709309	3
+65	517	5.720108709309	1
+65	559	5.884780782412	3
+65	563	5.885002782412	1
+65	602	5.94700983812	3
+65	612	5.94723183812	1
+65	659	6.21988671917	3
+65	664	6.22010871917	1
+65	697	6.352570675034	0
+65	703	6.352792675034	1
+65	747	6.447010004449	3
+65	762	6.447232004449	1
+65	799	6.71988680689	3
+65	809	6.72010880689	1
+65	841	6.852570675034	0
+65	847	6.852792675034	1
+65	887	6.947010280203	3
+65	902	6.947232280203	1
+65	944	7.219886984506	3
+65	954	7.220108984506	1
+65	982	7.352570675034	0
+65	988	7.352792675034	1
+65	1032	7.447010481173	3
+65	1047	7.447232481173	1
+65	1085	7.71988716749	3
+65	1100	7.72010916749	1
+65	1126	7.852570675034	0
+65	1132	7.852792675034	1
+65	1172	7.947010563107	3
+65	1187	7.947232563107	1
+65	1230	8.219887315948	3
+65	1245	8.220109315948	1
+65	1267	8.352570675034	0
+65	1273	8.352792675034	1
+65	1307	8.384781020258	3
+65	1317	8.385003020258	1
+65	1370	8.719887399001	3
+65	1385	8.720109399001	1
+65	1411	8.852570675034	0
+65	1417	8.852792675034	1
+65	1451	8.884781085406	3
+65	1461	8.885003085406	1
+65	1515	9.21988742533	3
+65	1530	9.22010942533	1
+65	1552	9.352570675034	0
+65	1558	9.352792675034	1
+65	1593	9.384781183729	3
+65	1608	9.385003183729	1
+65	1655	9.719887409267	3
+65	1670	9.720109409267	1
+65	1696	9.852570675034	0
+65	1702	9.852792675034	1
+65	1737	9.884781262598	3
+65	1752	9.885003262598	1
+65	1800	10.219887388111	3
+65	1815	10.220109388111	1
+65	1837	10.352570675034	0
+65	1843	10.352792675034	1
+65	1878	10.384781297229	3
+65	1893	10.385003297229	1
+65	1940	10.719887380075	3
+65	1955	10.720109380075	1
+65	1981	10.852570675034	0
+65	1987	10.852792675034	1
+65	2022	10.884781287648	3
+65	2037	10.885003287648	1
+65	2085	11.219887384881	3
+65	2100	11.220109384881	1
+65	2122	11.352570675034	0
+65	2128	11.352792675034	1
+65	2171	11.447010134798	3
+65	2181	11.447232134798	1
+65	2225	11.719887395619	3
+65	2240	11.720109395619	1
+65	2266	11.852570675034	0
+65	2272	11.852792675034	1
+65	2311	11.947010153441	3
+65	2321	11.947232153441	1
+65	2370	12.219887420312	3
+65	2385	12.220109420312	1
+65	2407	12.352570675034	0
+65	2413	12.352792675034	1
+65	2456	12.447010180825	3
+65	2466	12.447232180825	1
+65	2510	12.719887450675	3
+65	2525	12.720109450675	1
+65	2551	12.852570675034	0
+65	2557	12.852792675034	1
+65	2597	12.947010219726	3
+65	2612	12.947232219726	1
+66	697	6.352570675034	1
+66	698	6.352570675034	2
+66	702	6.352792675034	1
+66	703	6.352792675034	0
+66	841	6.852570675034	1
+66	842	6.852570675034	2
+66	846	6.852792675034	1
+66	847	6.852792675034	0
+66	982	7.352570675034	1
+66	983	7.352570675034	2
+66	987	7.352792675034	1
+66	988	7.352792675034	0
+66	1126	7.852570675034	1
+66	1127	7.852570675034	2
+66	1131	7.852792675034	1
+66	1132	7.852792675034	0
+66	1267	8.352570675034	1
+66	1268	8.352570675034	2
+66	1272	8.352792675034	1
+66	1273	8.352792675034	0
+66	1411	8.852570675034	1
+66	1412	8.852570675034	2
+66	1416	8.852792675034	1
+66	1417	8.852792675034	0
+66	1552	9.352570675034	1
+66	1553	9.352570675034	2
+66	1557	9.352792675034	1
+66	1558	9.352792675034	0
+66	1696	9.852570675034	1
+66	1697	9.852570675034	2
+66	1701	9.852792675034	1
+66	1702	9.852792675034	0
+66	1837	10.352570675034	1
+66	1838	10.352570675034	2
+66	1842	10.352792675034	1
+66	1843	10.352792675034	0
+66	1981	10.852570675034	1
+66	1982	10.852570675034	2
+66	1986	10.852792675034	1
+66	1987	10.852792675034	0
+66	2122	11.352570675034	1
+66	2123	11.352570675034	2
+66	2127	11.352792675034	1
+66	2128	11.352792675034	0
+66	2266	11.852570675034	1
+66	2267	11.852570675034	2
+66	2271	11.852792675034	1
+66	2272	11.852792675034	0
+66	2407	12.352570675034	1
+66	2408	12.352570675034	2
+66	2412	12.352792675034	1
+66	2413	12.352792675034	0
+66	2551	12.852570675034	1
+66	2552	12.852570675034	2
+66	2556	12.852792675034	1
+66	2557	12.852792675034	0
 67	0	0	0
 68	0	0	0
 68	0	0	0
 68	0	0	0
 68	0	0	0
+68	264	3.947009828233	0
+68	264	3.947009828233	0
+68	268	3.947231828233	0
+68	268	3.947231828233	0
+68	331	4.447009828233	0
+68	331	4.447009828233	0
+68	335	4.447231828233	0
+68	335	4.447231828233	0
+68	393	4.947009828233	0
+68	393	4.947009828233	0
+68	397	4.947231828233	0
+68	397	4.947231828233	0
+68	460	5.447009828233	0
+68	460	5.447009828233	0
+68	464	5.447231828233	0
+68	464	5.447231828233	0
+68	513	5.719886709309	0
+68	513	5.719886709309	0
+68	517	5.720108709309	0
+68	517	5.720108709309	0
+68	559	5.884780782412	0
+68	559	5.884780782412	0
+68	563	5.885002782412	0
+68	563	5.885002782412	0
+68	602	5.94700983812	0
+68	602	5.94700983812	0
+68	612	5.94723183812	0
+68	612	5.94723183812	0
+68	659	6.21988671917	0
+68	659	6.21988671917	0
+68	664	6.22010871917	0
+68	664	6.22010871917	0
+68	692	6.352570675034	0
+68	692	6.352570675034	2
+68	694	6.352570675034	2
+68	694	6.352570675034	3
+68	697	6.352570675034	3
+68	697	6.352570675034	3
+68	702	6.352792675034	3
+68	702	6.352792675034	0
+68	703	6.352792675034	0
+68	703	6.352792675034	0
+68	747	6.447010004449	0
+68	747	6.447010004449	0
+68	762	6.447232004449	0
+68	762	6.447232004449	0
+68	799	6.71988680689	0
+68	799	6.71988680689	0
+68	809	6.72010880689	0
+68	809	6.72010880689	0
+68	836	6.852570675034	0
+68	836	6.852570675034	2
+68	838	6.852570675034	2
+68	838	6.852570675034	3
+68	841	6.852570675034	3
+68	841	6.852570675034	3
+68	846	6.852792675034	3
+68	846	6.852792675034	0
+68	847	6.852792675034	0
+68	847	6.852792675034	0
+68	887	6.947010280203	0
+68	887	6.947010280203	0
+68	902	6.947232280203	0
+68	902	6.947232280203	0
+68	944	7.219886984506	0
+68	944	7.219886984506	0
+68	954	7.220108984506	0
+68	954	7.220108984506	0
+68	977	7.352570675034	0
+68	977	7.352570675034	2
+68	979	7.352570675034	2
+68	979	7.352570675034	3
+68	982	7.352570675034	3
+68	982	7.352570675034	3
+68	987	7.352792675034	3
+68	987	7.352792675034	0
+68	988	7.352792675034	0
+68	988	7.352792675034	0
+68	1032	7.447010481173	0
+68	1032	7.447010481173	0
+68	1047	7.447232481173	0
+68	1047	7.447232481173	0
+68	1085	7.71988716749	0
+68	1085	7.71988716749	0
+68	1100	7.72010916749	0
+68	1100	7.72010916749	0
+68	1121	7.852570675034	0
+68	1121	7.852570675034	2
+68	1123	7.852570675034	2
+68	1123	7.852570675034	3
+68	1126	7.852570675034	3
+68	1126	7.852570675034	3
+68	1131	7.852792675034	3
+68	1131	7.852792675034	0
+68	1132	7.852792675034	0
+68	1132	7.852792675034	0
+68	1172	7.947010563107	0
+68	1172	7.947010563107	0
+68	1187	7.947232563107	0
+68	1187	7.947232563107	0
+68	1230	8.219887315948	0
+68	1230	8.219887315948	0
+68	1245	8.220109315948	0
+68	1245	8.220109315948	0
+68	1262	8.352570675034	0
+68	1262	8.352570675034	2
+68	1264	8.352570675034	2
+68	1264	8.352570675034	3
+68	1267	8.352570675034	3
+68	1267	8.352570675034	3
+68	1272	8.352792675034	3
+68	1272	8.352792675034	0
+68	1273	8.352792675034	0
+68	1273	8.352792675034	0
+68	1307	8.384781020258	0
+68	1307	8.384781020258	0
+68	1317	8.385003020258	0
+68	1317	8.385003020258	0
+68	1370	8.719887399001	0
+68	1370	8.719887399001	0
+68	1385	8.720109399001	0
+68	1385	8.720109399001	0
+68	1406	8.852570675034	0
+68	1406	8.852570675034	2
+68	1408	8.852570675034	2
+68	1408	8.852570675034	3
+68	1411	8.852570675034	3
+68	1411	8.852570675034	3
+68	1416	8.852792675034	3
+68	1416	8.852792675034	0
+68	1417	8.852792675034	0
+68	1417	8.852792675034	0
+68	1451	8.884781085406	0
+68	1451	8.884781085406	0
+68	1461	8.885003085406	0
+68	1461	8.885003085406	0
+68	1515	9.21988742533	0
+68	1515	9.21988742533	0
+68	1530	9.22010942533	0
+68	1530	9.22010942533	0
+68	1547	9.352570675034	0
+68	1547	9.352570675034	2
+68	1549	9.352570675034	2
+68	1549	9.352570675034	3
+68	1552	9.352570675034	3
+68	1552	9.352570675034	3
+68	1557	9.352792675034	3
+68	1557	9.352792675034	0
+68	1558	9.352792675034	0
+68	1558	9.352792675034	0
+68	1593	9.384781183729	0
+68	1593	9.384781183729	0
+68	1608	9.385003183729	0
+68	1608	9.385003183729	0
+68	1655	9.719887409267	0
+68	1655	9.719887409267	0
+68	1670	9.720109409267	0
+68	1670	9.720109409267	0
+68	1691	9.852570675034	0
+68	1691	9.852570675034	2
+68	1693	9.852570675034	2
+68	1693	9.852570675034	3
+68	1696	9.852570675034	3
+68	1696	9.852570675034	3
+68	1701	9.852792675034	3
+68	1701	9.852792675034	0
+68	1702	9.852792675034	0
+68	1702	9.852792675034	0
+68	1737	9.884781262598	0
+68	1737	9.884781262598	0
+68	1752	9.885003262598	0
+68	1752	9.885003262598	0
+68	1800	10.219887388111	0
+68	1800	10.219887388111	0
+68	1815	10.220109388111	0
+68	1815	10.220109388111	0
+68	1832	10.352570675034	0
+68	1832	10.352570675034	2
+68	1834	10.352570675034	2
+68	1834	10.352570675034	3
+68	1837	10.352570675034	3
+68	1837	10.352570675034	3
+68	1842	10.352792675034	3
+68	1842	10.352792675034	0
+68	1843	10.352792675034	0
+68	1843	10.352792675034	0
+68	1878	10.384781297229	0
+68	1878	10.384781297229	0
+68	1893	10.385003297229	0
+68	1893	10.385003297229	0
+68	1940	10.719887380075	0
+68	1940	10.719887380075	0
+68	1955	10.720109380075	0
+68	1955	10.720109380075	0
+68	1976	10.852570675034	0
+68	1976	10.852570675034	2
+68	1978	10.852570675034	2
+68	1978	10.852570675034	3
+68	1981	10.852570675034	3
+68	1981	10.852570675034	3
+68	1986	10.852792675034	3
+68	1986	10.852792675034	0
+68	1987	10.852792675034	0
+68	1987	10.852792675034	0
+68	2022	10.884781287648	0
+68	2022	10.884781287648	0
+68	2037	10.885003287648	0
+68	2037	10.885003287648	0
+68	2085	11.219887384881	0
+68	2085	11.219887384881	0
+68	2100	11.220109384881	0
+68	2100	11.220109384881	0
+68	2117	11.352570675034	0
+68	2117	11.352570675034	2
+68	2119	11.352570675034	2
+68	2119	11.352570675034	3
+68	2122	11.352570675034	3
+68	2122	11.352570675034	3
+68	2127	11.352792675034	3
+68	2127	11.352792675034	0
+68	2128	11.352792675034	0
+68	2128	11.352792675034	0
+68	2171	11.447010134798	0
+68	2171	11.447010134798	0
+68	2181	11.447232134798	0
+68	2181	11.447232134798	0
+68	2225	11.719887395619	0
+68	2225	11.719887395619	0
+68	2240	11.720109395619	0
+68	2240	11.720109395619	0
+68	2261	11.852570675034	0
+68	2261	11.852570675034	2
+68	2263	11.852570675034	2
+68	2263	11.852570675034	3
+68	2266	11.852570675034	3
+68	2266	11.852570675034	3
+68	2271	11.852792675034	3
+68	2271	11.852792675034	0
+68	2272	11.852792675034	0
+68	2272	11.852792675034	0
+68	2311	11.947010153441	0
+68	2311	11.947010153441	0
+68	2321	11.947232153441	0
+68	2321	11.947232153441	0
+68	2370	12.219887420312	0
+68	2370	12.219887420312	0
+68	2385	12.220109420312	0
+68	2385	12.220109420312	0
+68	2402	12.352570675034	0
+68	2402	12.352570675034	2
+68	2404	12.352570675034	2
+68	2404	12.352570675034	3
+68	2407	12.352570675034	3
+68	2407	12.352570675034	3
+68	2412	12.352792675034	3
+68	2412	12.352792675034	0
+68	2413	12.352792675034	0
+68	2413	12.352792675034	0
+68	2456	12.447010180825	0
+68	2456	12.447010180825	0
+68	2466	12.447232180825	0
+68	2466	12.447232180825	0
+68	2510	12.719887450675	0
+68	2510	12.719887450675	0
+68	2525	12.720109450675	0
+68	2525	12.720109450675	0
+68	2546	12.852570675034	0
+68	2546	12.852570675034	2
+68	2548	12.852570675034	2
+68	2548	12.852570675034	3
+68	2551	12.852570675034	3
+68	2551	12.852570675034	3
+68	2556	12.852792675034	3
+68	2556	12.852792675034	0
+68	2557	12.852792675034	0
+68	2557	12.852792675034	0
+68	2597	12.947010219726	0
+68	2597	12.947010219726	0
+68	2612	12.947232219726	0
+68	2612	12.947232219726	0
+69	507	5.719886709309	512
+69	575	5.885002782412	512
+69	610	5.94723183773	512
+69	654	6.219886709309	512
+69	715	6.352792692199	512
+69	755	6.447231979668	512
+69	794	6.719886709309	512
+69	859	6.852792820049	512
+69	895	6.947232147451	512
+69	939	7.219886709309	512
+69	1000	7.352793000678	512
+69	1040	7.447232255102	512
+69	1079	7.719886709309	512
+69	1144	7.852793178516	512
+69	1180	7.947232254839	512
+69	1224	8.219886709309	512
+69	1291	8.352793310541	512
+69	1328	8.385003201585	512
+69	1364	8.719886709309	512
+69	1435	8.852793377277	512
+69	1472	8.885003188199	512
+69	1509	9.219886709309	512
+69	1576	9.352793389079	512
+69	1607	9.385003094694	512
+69	1649	9.719886709309	512
+69	1720	9.852793368798	512
+69	1751	9.885003007729	512
+69	1794	10.219886709309	512
+69	1861	10.352793350213	512
+69	1886	10.385002972302	512
+69	1934	10.719886709309	512
+69	2005	10.852793346249	512
+69	2030	10.885002991469	512
+69	2079	11.219886709309	512
+69	2146	11.35279335271	512
+69	2192	11.447232200969	512
+69	2219	11.719886709309	512
+69	2290	11.852793366792	512
+69	2332	11.947232199292	512
+69	2364	12.219886709309	512
+69	2431	12.35279339431	512
+69	2477	12.447232201039	512
+69	2504	12.719886709309	512
+69	2575	12.85279342356	512
+69	2611	12.947232190284	512
+70	496	5.719886709309	512
+70	645	6.219886709309	512
+70	785	6.719886709309	512
+70	930	7.219886709309	512
+70	1070	7.719886709309	512
+70	1215	8.219886709309	512
+70	1355	8.719886709309	512
+70	1500	9.219886709309	512
+70	1640	9.719886709309	512
+70	1785	10.219886709309	512
+70	1925	10.719886709309	512
+70	2070	11.219886709309	512
+70	2210	11.719886709309	512
+70	2355	12.219886709309	512
+70	2495	12.719886709309	512
+71	507	5.719886709309	0
+71	575	5.885002782412	0.000222
+71	610	5.94723183773	0.000222009497
+71	654	6.219886709309	0
+71	715	6.352792692199	0.000222017165
+71	755	6.447231979668	0.000222151435
+71	794	6.719886709309	0
+71	859	6.852792820049	0.000222145015
+71	895	6.947232147451	0.000222319218
+71	939	7.219886709309	0
+71	1000	7.352793000678	0.000222325644
+71	1040	7.447232255102	0.000222426869
+71	1079	7.719886709309	0
+71	1144	7.852793178516	0.000222503482
+71	1180	7.947232254839	0.000222426606
+71	1224	8.219886709309	0
+71	1291	8.352793310541	0.000222635507
+71	1328	8.385003201585	0.000222419173
+71	1364	8.719886709309	0
+71	1435	8.852793377277	0.000222702243
+71	1472	8.885003188199	0.000222405787
+71	1509	9.219886709309	0
+71	1576	9.352793389079	0.000222714045
+71	1607	9.385003094694	0.000222312282
+71	1649	9.719886709309	0
+71	1720	9.852793368798	0.000222693764
+71	1751	9.885003007729	0.000222225317
+71	1794	10.219886709309	0
+71	1861	10.352793350213	0.000222675179
+71	1886	10.385002972302	0.00022218989
+71	1934	10.719886709309	0
+71	2005	10.852793346249	0.000222671215
+71	2030	10.885002991469	0.000222209057
+71	2079	11.219886709309	0
+71	2146	11.35279335271	0.000222677676
+71	2192	11.447232200969	0.000222372736
+71	2219	11.719886709309	0
+71	2290	11.852793366792	0.000222691758
+71	2332	11.947232199292	0.000222371059
+71	2364	12.219886709309	0
+71	2431	12.35279339431	0.000222719276
+71	2477	12.447232201039	0.000222372806
+71	2504	12.719886709309	0
+71	2575	12.85279342356	0.000222748526
+71	2611	12.947232190284	0.000222362051
+73	499	5.719886709309	520
+73	646	6.219886709309	520
+73	786	6.719886709309	520
+73	931	7.219886709309	520
+73	1071	7.719886709309	520
+73	1216	8.219886709309	520
+73	1356	8.719886709309	520
+73	1501	9.219886709309	520
+73	1641	9.719886709309	520
+73	1786	10.219886709309	520
+73	1926	10.719886709309	520
+73	2071	11.219886709309	520
+73	2211	11.719886709309	520
+73	2356	12.219886709309	520
+73	2496	12.719886709309	520
+74	282	3.947231828233	520
+74	349	4.447231828233	520
+74	411	4.947231828233	520
+74	478	5.447231828233	520
+74	505	5.719886709309	520
+74	573	5.885002782412	520
+74	609	5.94723183773	520
+74	652	6.219886709309	520
+74	714	6.352792692199	520
+74	754	6.447231979668	520
+74	792	6.719886709309	520
+74	858	6.852792820049	520
+74	894	6.947232147451	520
+74	937	7.219886709309	520
+74	999	7.352793000678	520
+74	1039	7.447232255102	520
+74	1077	7.719886709309	520
+74	1143	7.852793178516	520
+74	1179	7.947232254839	520
+74	1222	8.219886709309	520
+74	1290	8.352793310541	520
+74	1327	8.385003201585	520
+74	1362	8.719886709309	520
+74	1434	8.852793377277	520
+74	1471	8.885003188199	520
+74	1507	9.219886709309	520
+74	1575	9.352793389079	520
+74	1606	9.385003094694	520
+74	1647	9.719886709309	520
+74	1719	9.852793368798	520
+74	1750	9.885003007729	520
+74	1792	10.219886709309	520
+74	1860	10.352793350213	520
+74	1885	10.385002972302	520
+74	1932	10.719886709309	520
+74	2004	10.852793346249	520
+74	2029	10.885002991469	520
+74	2077	11.219886709309	520
+74	2145	11.35279335271	520
+74	2191	11.447232200969	520
+74	2217	11.719886709309	520
+74	2289	11.852793366792	520
+74	2331	11.947232199292	520
+74	2362	12.219886709309	520
+74	2430	12.35279339431	520
+74	2476	12.447232201039	520
+74	2502	12.719886709309	520
+74	2574	12.85279342356	520
+74	2610	12.947232190284	520
+75	505	5.719886709309	1
+75	573	5.885002782412	2
+75	609	5.94723183773	3
+75	652	6.219886709309	4
+75	714	6.352792692199	5
+75	754	6.447231979668	6
+75	792	6.719886709309	7
+75	858	6.852792820049	8
+75	894	6.947232147451	9
+75	937	7.219886709309	10
+75	999	7.352793000678	11
+75	1039	7.447232255102	12
+75	1077	7.719886709309	13
+75	1143	7.852793178516	14
+75	1179	7.947232254839	15
+75	1222	8.219886709309	16
+75	1290	8.352793310541	17
+75	1327	8.385003201585	18
+75	1362	8.719886709309	19
+75	1434	8.852793377277	20
+75	1471	8.885003188199	21
+75	1507	9.219886709309	22
+75	1575	9.352793389079	23
+75	1606	9.385003094694	24
+75	1647	9.719886709309	25
+75	1719	9.852793368798	26
+75	1750	9.885003007729	27
+75	1792	10.219886709309	28
+75	1860	10.352793350213	29
+75	1885	10.385002972302	30
+75	1932	10.719886709309	31
+75	2004	10.852793346249	32
+75	2029	10.885002991469	33
+75	2077	11.219886709309	34
+75	2145	11.35279335271	35
+75	2191	11.447232200969	36
+75	2217	11.719886709309	37
+75	2289	11.852793366792	38
+75	2331	11.947232199292	39
+75	2362	12.219886709309	40
+75	2430	12.35279339431	41
+75	2476	12.447232201039	42
+75	2502	12.719886709309	43
+75	2574	12.85279342356	44
+75	2610	12.947232190284	45
+76	282	3.947231828233	1
+76	349	4.447231828233	2
+76	411	4.947231828233	3
+76	478	5.447231828233	4
+81	501	5.719886709309	540
+81	648	6.219886709309	540
+81	788	6.719886709309	540
+81	933	7.219886709309	540
+81	1073	7.719886709309	540
+81	1218	8.219886709309	540
+81	1358	8.719886709309	540
+81	1503	9.219886709309	540
+81	1643	9.719886709309	540
+81	1788	10.219886709309	540
+81	1928	10.719886709309	540
+81	2073	11.219886709309	540
+81	2213	11.719886709309	540
+81	2358	12.219886709309	540
+81	2498	12.719886709309	540
+82	501	5.719886709309	540
+82	648	6.219886709309	540
+82	788	6.719886709309	540
+82	933	7.219886709309	540
+82	1073	7.719886709309	540
+82	1218	8.219886709309	540
+82	1358	8.719886709309	540
+82	1503	9.219886709309	540
+82	1643	9.719886709309	540
+82	1788	10.219886709309	540
+82	1928	10.719886709309	540
+82	2073	11.219886709309	540
+82	2213	11.719886709309	540
+82	2358	12.219886709309	540
+82	2498	12.719886709309	540
+83	273	3.947231828233	576
+83	340	4.447231828233	576
+83	402	4.947231828233	576
+83	469	5.447231828233	576
+83	567	5.885002782412	576
+83	606	5.94723183773	576
+83	711	6.352792692199	576
+83	751	6.447231979668	576
+83	855	6.852792820049	576
+83	891	6.947232147451	576
+83	996	7.352793000678	576
+83	1036	7.447232255102	576
+83	1140	7.852793178516	576
+83	1176	7.947232254839	576
+83	1287	8.352793310541	576
+83	1324	8.385003201585	576
+83	1431	8.852793377277	576
+83	1468	8.885003188199	576
+83	1572	9.352793389079	576
+83	1603	9.385003094694	576
+83	1716	9.852793368798	576
+83	1747	9.885003007729	576
+83	1857	10.352793350213	576
+83	1882	10.385002972302	576
+83	2001	10.852793346249	576
+83	2026	10.885002991469	576
+83	2142	11.35279335271	576
+83	2188	11.447232200969	576
+83	2286	11.852793366792	576
+83	2328	11.947232199292	576
+83	2427	12.35279339431	576
+83	2473	12.447232201039	576
+83	2571	12.85279342356	576
+83	2607	12.947232190284	576
+84	508	5.719886709309	576
+84	655	6.219886709309	576
+84	795	6.719886709309	576
+84	940	7.219886709309	576
+84	1080	7.719886709309	576
+84	1225	8.219886709309	576
+84	1365	8.719886709309	576
+84	1510	9.219886709309	576
+84	1650	9.719886709309	576
+84	1795	10.219886709309	576
+84	1935	10.719886709309	576
+84	2080	11.219886709309	576
+84	2220	11.719886709309	576
+84	2365	12.219886709309	576
+84	2505	12.719886709309	576
+85	504	5.719886709309	576
+85	651	6.219886709309	576
+85	791	6.719886709309	576
+85	936	7.219886709309	576
+85	1076	7.719886709309	576
+85	1221	8.219886709309	576
+85	1361	8.719886709309	576
+85	1506	9.219886709309	576
+85	1646	9.719886709309	576
+85	1791	10.219886709309	576
+85	1931	10.719886709309	576
+85	2076	11.219886709309	576
+85	2216	11.719886709309	576
+85	2361	12.219886709309	576
+85	2501	12.719886709309	576
+86	273	3.947231828233	576
+86	340	4.447231828233	576
+86	402	4.947231828233	576
+86	469	5.447231828233	576
+86	567	5.885002782412	576
+86	606	5.94723183773	576
+86	711	6.352792692199	576
+86	751	6.447231979668	576
+86	855	6.852792820049	576
+86	891	6.947232147451	576
+86	996	7.352793000678	576
+86	1036	7.447232255102	576
+86	1140	7.852793178516	576
+86	1176	7.947232254839	576
+86	1287	8.352793310541	576
+86	1324	8.385003201585	576
+86	1431	8.852793377277	576
+86	1468	8.885003188199	576
+86	1572	9.352793389079	576
+86	1603	9.385003094694	576
+86	1716	9.852793368798	576
+86	1747	9.885003007729	576
+86	1857	10.352793350213	576
+86	1882	10.385002972302	576
+86	2001	10.852793346249	576
+86	2026	10.885002991469	576
+86	2142	11.35279335271	576
+86	2188	11.447232200969	576
+86	2286	11.852793366792	576
+86	2328	11.947232199292	576
+86	2427	12.35279339431	576
+86	2473	12.447232201039	576
+86	2571	12.85279342356	576
+86	2607	12.947232190284	576
 87	0	0	0
 87	0	0	2
+87	509	5.719886709309	3
+87	518	5.720108709309	2
+87	656	6.219886709309	3
+87	662	6.220108709309	2
+87	796	6.719886709309	3
+87	802	6.720108709309	2
+87	941	7.219886709309	3
+87	947	7.220108709309	2
+87	1081	7.719886709309	3
+87	1087	7.720108709309	2
+87	1226	8.219886709309	3
+87	1232	8.220108709309	2
+87	1366	8.719886709309	3
+87	1372	8.720108709309	2
+87	1511	9.219886709309	3
+87	1517	9.220108709309	2
+87	1651	9.719886709309	3
+87	1657	9.720108709309	2
+87	1796	10.219886709309	3
+87	1802	10.220108709309	2
+87	1936	10.719886709309	3
+87	1942	10.720108709309	2
+87	2081	11.219886709309	3
+87	2087	11.220108709309	2
+87	2221	11.719886709309	3
+87	2227	11.720108709309	2
+87	2366	12.219886709309	3
+87	2372	12.220108709309	2
+87	2506	12.719886709309	3
+87	2512	12.720108709309	2
 88	0	0	1
+88	265	3.947009828233	3
+88	269	3.947231828233	1
+88	332	4.447009828233	3
+88	336	4.447231828233	1
+88	394	4.947009828233	3
+88	398	4.947231828233	1
+88	461	5.447009828233	3
+88	465	5.447231828233	1
+88	509	5.719886709309	0
+88	518	5.720108709309	1
+88	560	5.884780782412	3
+88	564	5.885002782412	1
+88	600	5.94700983773	3
+88	605	5.94723183773	1
+88	656	6.219886709309	0
+88	662	6.220108709309	1
+88	700	6.352570692199	3
+88	710	6.352792692199	1
+88	745	6.447009979668	3
+88	750	6.447231979668	1
+88	796	6.719886709309	0
+88	802	6.720108709309	1
+88	844	6.852570820049	3
+88	854	6.852792820049	1
+88	885	6.947010147451	3
+88	890	6.947232147451	1
+88	941	7.219886709309	0
+88	947	7.220108709309	1
+88	985	7.352571000678	3
+88	995	7.352793000678	1
+88	1030	7.447010255102	3
+88	1035	7.447232255102	1
+88	1081	7.719886709309	0
+88	1087	7.720108709309	1
+88	1129	7.852571178516	3
+88	1139	7.852793178516	1
+88	1170	7.947010254839	3
+88	1175	7.947232254839	1
+88	1226	8.219886709309	0
+88	1232	8.220108709309	1
+88	1271	8.352571310541	3
+88	1286	8.352793310541	1
+88	1308	8.384781201585	3
+88	1323	8.385003201585	1
+88	1366	8.719886709309	0
+88	1372	8.720108709309	1
+88	1415	8.852571377277	3
+88	1430	8.852793377277	1
+88	1452	8.884781188199	3
+88	1467	8.885003188199	1
+88	1511	9.219886709309	0
+88	1517	9.220108709309	1
+88	1556	9.352571389079	3
+88	1571	9.352793389079	1
+88	1592	9.384781094694	3
+88	1602	9.385003094694	1
+88	1651	9.719886709309	0
+88	1657	9.720108709309	1
+88	1700	9.852571368798	3
+88	1715	9.852793368798	1
+88	1736	9.884781007729	3
+88	1746	9.885003007729	1
+88	1796	10.219886709309	0
+88	1802	10.220108709309	1
+88	1841	10.352571350213	3
+88	1856	10.352793350213	1
+88	1876	10.384780972302	3
+88	1881	10.385002972302	1
+88	1936	10.719886709309	0
+88	1942	10.720108709309	1
+88	1985	10.852571346249	3
+88	2000	10.852793346249	1
+88	2020	10.884780991469	3
+88	2025	10.885002991469	1
+88	2081	11.219886709309	0
+88	2087	11.220108709309	1
+88	2126	11.35257135271	3
+88	2141	11.35279335271	1
+88	2172	11.447010200969	3
+88	2187	11.447232200969	1
+88	2221	11.719886709309	0
+88	2227	11.720108709309	1
+88	2270	11.852571366792	3
+88	2285	11.852793366792	1
+88	2312	11.947010199292	3
+88	2327	11.947232199292	1
+88	2366	12.219886709309	0
+88	2372	12.220108709309	1
+88	2411	12.35257139431	3
+88	2426	12.35279339431	1
+88	2457	12.447010201039	3
+88	2472	12.447232201039	1
+88	2506	12.719886709309	0
+88	2512	12.720108709309	1
+88	2555	12.85257142356	3
+88	2570	12.85279342356	1
+88	2596	12.947010190284	3
+88	2606	12.947232190284	1
+89	509	5.719886709309	1
+89	510	5.719886709309	2
+89	514	5.720108709309	1
+89	518	5.720108709309	0
+89	656	6.219886709309	1
+89	657	6.219886709309	2
+89	661	6.220108709309	1
+89	662	6.220108709309	0
+89	796	6.719886709309	1
+89	797	6.719886709309	2
+89	801	6.720108709309	1
+89	802	6.720108709309	0
+89	941	7.219886709309	1
+89	942	7.219886709309	2
+89	946	7.220108709309	1
+89	947	7.220108709309	0
+89	1081	7.719886709309	1
+89	1082	7.719886709309	2
+89	1086	7.720108709309	1
+89	1087	7.720108709309	0
+89	1226	8.219886709309	1
+89	1227	8.219886709309	2
+89	1231	8.220108709309	1
+89	1232	8.220108709309	0
+89	1366	8.719886709309	1
+89	1367	8.719886709309	2
+89	1371	8.720108709309	1
+89	1372	8.720108709309	0
+89	1511	9.219886709309	1
+89	1512	9.219886709309	2
+89	1516	9.220108709309	1
+89	1517	9.220108709309	0
+89	1651	9.719886709309	1
+89	1652	9.719886709309	2
+89	1656	9.720108709309	1
+89	1657	9.720108709309	0
+89	1796	10.219886709309	1
+89	1797	10.219886709309	2
+89	1801	10.220108709309	1
+89	1802	10.220108709309	0
+89	1936	10.719886709309	1
+89	1937	10.719886709309	2
+89	1941	10.720108709309	1
+89	1942	10.720108709309	0
+89	2081	11.219886709309	1
+89	2082	11.219886709309	2
+89	2086	11.220108709309	1
+89	2087	11.220108709309	0
+89	2221	11.719886709309	1
+89	2222	11.719886709309	2
+89	2226	11.720108709309	1
+89	2227	11.720108709309	0
+89	2366	12.219886709309	1
+89	2367	12.219886709309	2
+89	2371	12.220108709309	1
+89	2372	12.220108709309	0
+89	2506	12.719886709309	1
+89	2507	12.719886709309	2
+89	2511	12.720108709309	1
+89	2512	12.720108709309	0
 90	0	0	0
 91	0	0	0
 91	0	0	0
 91	0	0	0
 91	0	0	0
-110	0	0	0
-110	0	0	2
-111	0	0	1
-113	0	0	0
-114	0	0	0
-114	0	0	0
-114	0	0	0
-114	0	0	0
-133	0	0	0
-133	0	0	2
-134	0	0	1
-136	0	0	0
-137	0	0	0
-137	0	0	0
-137	0	0	0
-137	0	0	0
-156	0	0	0
-156	0	0	2
-157	0	0	1
-159	0	0	0
-160	0	0	0
-160	0	0	0
-160	0	0	0
-160	0	0	0
-179	0	0	0
-179	0	0	2
-180	0	0	1
-182	0	0	0
-183	0	0	0
-183	0	0	0
-183	0	0	0
-183	0	0	0
-202	0	0	0
-202	0	0	2
-203	0	0	1
-205	0	0	0
-206	0	0	0
-206	0	0	0
-206	0	0	0
-206	0	0	0
-225	0	0	0
-225	0	0	2
-226	0	0	1
-228	0	0	0
-229	0	0	0
-229	0	0	0
-229	0	0	0
-229	0	0	0
-248	0	0	0
-248	0	0	2
-249	0	0	1
-251	0	0	0
-252	0	0	0
-252	0	0	0
-252	0	0	0
-252	0	0	0
-271	0	0	0
-271	0	0	2
-272	0	0	1
-274	0	0	0
-275	0	0	0
-275	0	0	0
-275	0	0	0
-275	0	0	0
-294	0	0	0
-294	0	0	2
-295	0	0	1
-297	0	0	0
-298	0	0	0
-298	0	0	0
-298	0	0	0
-298	0	0	0
-317	0	0	0
-317	0	0	2
-318	0	0	1
-320	0	0	0
-321	0	0	0
-321	0	0	0
-321	0	0	0
-321	0	0	0
-340	0	0	0
-340	0	0	2
-341	0	0	1
-343	0	0	0
-344	0	0	0
-344	0	0	0
-344	0	0	0
-344	0	0	0
-363	0	0	0
-363	0	0	2
-364	0	0	1
-366	0	0	0
-367	0	0	0
-367	0	0	0
-367	0	0	0
-367	0	0	0
-386	0	0	0
-386	0	0	2
-387	0	0	1
-389	0	0	0
-390	0	0	0
-390	0	0	0
-390	0	0	0
-390	0	0	0
+91	265	3.947009828233	0
+91	265	3.947009828233	0
+91	269	3.947231828233	0
+91	269	3.947231828233	0
+91	332	4.447009828233	0
+91	332	4.447009828233	0
+91	336	4.447231828233	0
+91	336	4.447231828233	0
+91	394	4.947009828233	0
+91	394	4.947009828233	0
+91	398	4.947231828233	0
+91	398	4.947231828233	0
+91	461	5.447009828233	0
+91	461	5.447009828233	0
+91	465	5.447231828233	0
+91	465	5.447231828233	0
+91	504	5.719886709309	0
+91	504	5.719886709309	2
+91	506	5.719886709309	2
+91	506	5.719886709309	3
+91	509	5.719886709309	3
+91	509	5.719886709309	3
+91	514	5.720108709309	3
+91	514	5.720108709309	0
+91	518	5.720108709309	0
+91	518	5.720108709309	0
+91	560	5.884780782412	0
+91	560	5.884780782412	0
+91	564	5.885002782412	0
+91	564	5.885002782412	0
+91	600	5.94700983773	0
+91	600	5.94700983773	0
+91	605	5.94723183773	0
+91	605	5.94723183773	0
+91	651	6.219886709309	0
+91	651	6.219886709309	2
+91	653	6.219886709309	2
+91	653	6.219886709309	3
+91	656	6.219886709309	3
+91	656	6.219886709309	3
+91	661	6.220108709309	3
+91	661	6.220108709309	0
+91	662	6.220108709309	0
+91	662	6.220108709309	0
+91	700	6.352570692199	0
+91	700	6.352570692199	0
+91	710	6.352792692199	0
+91	710	6.352792692199	0
+91	745	6.447009979668	0
+91	745	6.447009979668	0
+91	750	6.447231979668	0
+91	750	6.447231979668	0
+91	791	6.719886709309	0
+91	791	6.719886709309	2
+91	793	6.719886709309	2
+91	793	6.719886709309	3
+91	796	6.719886709309	3
+91	796	6.719886709309	3
+91	801	6.720108709309	3
+91	801	6.720108709309	0
+91	802	6.720108709309	0
+91	802	6.720108709309	0
+91	844	6.852570820049	0
+91	844	6.852570820049	0
+91	854	6.852792820049	0
+91	854	6.852792820049	0
+91	885	6.947010147451	0
+91	885	6.947010147451	0
+91	890	6.947232147451	0
+91	890	6.947232147451	0
+91	936	7.219886709309	0
+91	936	7.219886709309	2
+91	938	7.219886709309	2
+91	938	7.219886709309	3
+91	941	7.219886709309	3
+91	941	7.219886709309	3
+91	946	7.220108709309	3
+91	946	7.220108709309	0
+91	947	7.220108709309	0
+91	947	7.220108709309	0
+91	985	7.352571000678	0
+91	985	7.352571000678	0
+91	995	7.352793000678	0
+91	995	7.352793000678	0
+91	1030	7.447010255102	0
+91	1030	7.447010255102	0
+91	1035	7.447232255102	0
+91	1035	7.447232255102	0
+91	1076	7.719886709309	0
+91	1076	7.719886709309	2
+91	1078	7.719886709309	2
+91	1078	7.719886709309	3
+91	1081	7.719886709309	3
+91	1081	7.719886709309	3
+91	1086	7.720108709309	3
+91	1086	7.720108709309	0
+91	1087	7.720108709309	0
+91	1087	7.720108709309	0
+91	1129	7.852571178516	0
+91	1129	7.852571178516	0
+91	1139	7.852793178516	0
+91	1139	7.852793178516	0
+91	1170	7.947010254839	0
+91	1170	7.947010254839	0
+91	1175	7.947232254839	0
+91	1175	7.947232254839	0
+91	1221	8.219886709309	0
+91	1221	8.219886709309	2
+91	1223	8.219886709309	2
+91	1223	8.219886709309	3
+91	1226	8.219886709309	3
+91	1226	8.219886709309	3
+91	1231	8.220108709309	3
+91	1231	8.220108709309	0
+91	1232	8.220108709309	0
+91	1232	8.220108709309	0
+91	1271	8.352571310541	0
+91	1271	8.352571310541	0
+91	1286	8.352793310541	0
+91	1286	8.352793310541	0
+91	1308	8.384781201585	0
+91	1308	8.384781201585	0
+91	1323	8.385003201585	0
+91	1323	8.385003201585	0
+91	1361	8.719886709309	0
+91	1361	8.719886709309	2
+91	1363	8.719886709309	2
+91	1363	8.719886709309	3
+91	1366	8.719886709309	3
+91	1366	8.719886709309	3
+91	1371	8.720108709309	3
+91	1371	8.720108709309	0
+91	1372	8.720108709309	0
+91	1372	8.720108709309	0
+91	1415	8.852571377277	0
+91	1415	8.852571377277	0
+91	1430	8.852793377277	0
+91	1430	8.852793377277	0
+91	1452	8.884781188199	0
+91	1452	8.884781188199	0
+91	1467	8.885003188199	0
+91	1467	8.885003188199	0
+91	1506	9.219886709309	0
+91	1506	9.219886709309	2
+91	1508	9.219886709309	2
+91	1508	9.219886709309	3
+91	1511	9.219886709309	3
+91	1511	9.219886709309	3
+91	1516	9.220108709309	3
+91	1516	9.220108709309	0
+91	1517	9.220108709309	0
+91	1517	9.220108709309	0
+91	1556	9.352571389079	0
+91	1556	9.352571389079	0
+91	1571	9.352793389079	0
+91	1571	9.352793389079	0
+91	1592	9.384781094694	0
+91	1592	9.384781094694	0
+91	1602	9.385003094694	0
+91	1602	9.385003094694	0
+91	1646	9.719886709309	0
+91	1646	9.719886709309	2
+91	1648	9.719886709309	2
+91	1648	9.719886709309	3
+91	1651	9.719886709309	3
+91	1651	9.719886709309	3
+91	1656	9.720108709309	3
+91	1656	9.720108709309	0
+91	1657	9.720108709309	0
+91	1657	9.720108709309	0
+91	1700	9.852571368798	0
+91	1700	9.852571368798	0
+91	1715	9.852793368798	0
+91	1715	9.852793368798	0
+91	1736	9.884781007729	0
+91	1736	9.884781007729	0
+91	1746	9.885003007729	0
+91	1746	9.885003007729	0
+91	1791	10.219886709309	0
+91	1791	10.219886709309	2
+91	1793	10.219886709309	2
+91	1793	10.219886709309	3
+91	1796	10.219886709309	3
+91	1796	10.219886709309	3
+91	1801	10.220108709309	3
+91	1801	10.220108709309	0
+91	1802	10.220108709309	0
+91	1802	10.220108709309	0
+91	1841	10.352571350213	0
+91	1841	10.352571350213	0
+91	1856	10.352793350213	0
+91	1856	10.352793350213	0
+91	1876	10.384780972302	0
+91	1876	10.384780972302	0
+91	1881	10.385002972302	0
+91	1881	10.385002972302	0
+91	1931	10.719886709309	0
+91	1931	10.719886709309	2
+91	1933	10.719886709309	2
+91	1933	10.719886709309	3
+91	1936	10.719886709309	3
+91	1936	10.719886709309	3
+91	1941	10.720108709309	3
+91	1941	10.720108709309	0
+91	1942	10.720108709309	0
+91	1942	10.720108709309	0
+91	1985	10.852571346249	0
+91	1985	10.852571346249	0
+91	2000	10.852793346249	0
+91	2000	10.852793346249	0
+91	2020	10.884780991469	0
+91	2020	10.884780991469	0
+91	2025	10.885002991469	0
+91	2025	10.885002991469	0
+91	2076	11.219886709309	0
+91	2076	11.219886709309	2
+91	2078	11.219886709309	2
+91	2078	11.219886709309	3
+91	2081	11.219886709309	3
+91	2081	11.219886709309	3
+91	2086	11.220108709309	3
+91	2086	11.220108709309	0
+91	2087	11.220108709309	0
+91	2087	11.220108709309	0
+91	2126	11.35257135271	0
+91	2126	11.35257135271	0
+91	2141	11.35279335271	0
+91	2141	11.35279335271	0
+91	2172	11.447010200969	0
+91	2172	11.447010200969	0
+91	2187	11.447232200969	0
+91	2187	11.447232200969	0
+91	2216	11.719886709309	0
+91	2216	11.719886709309	2
+91	2218	11.719886709309	2
+91	2218	11.719886709309	3
+91	2221	11.719886709309	3
+91	2221	11.719886709309	3
+91	2226	11.720108709309	3
+91	2226	11.720108709309	0
+91	2227	11.720108709309	0
+91	2227	11.720108709309	0
+91	2270	11.852571366792	0
+91	2270	11.852571366792	0
+91	2285	11.852793366792	0
+91	2285	11.852793366792	0
+91	2312	11.947010199292	0
+91	2312	11.947010199292	0
+91	2327	11.947232199292	0
+91	2327	11.947232199292	0
+91	2361	12.219886709309	0
+91	2361	12.219886709309	2
+91	2363	12.219886709309	2
+91	2363	12.219886709309	3
+91	2366	12.219886709309	3
+91	2366	12.219886709309	3
+91	2371	12.220108709309	3
+91	2371	12.220108709309	0
+91	2372	12.220108709309	0
+91	2372	12.220108709309	0
+91	2411	12.35257139431	0
+91	2411	12.35257139431	0
+91	2426	12.35279339431	0
+91	2426	12.35279339431	0
+91	2457	12.447010201039	0
+91	2457	12.447010201039	0
+91	2472	12.447232201039	0
+91	2472	12.447232201039	0
+91	2501	12.719886709309	0
+91	2501	12.719886709309	2
+91	2503	12.719886709309	2
+91	2503	12.719886709309	3
+91	2506	12.719886709309	3
+91	2506	12.719886709309	3
+91	2511	12.720108709309	3
+91	2511	12.720108709309	0
+91	2512	12.720108709309	0
+91	2512	12.720108709309	0
+91	2555	12.85257142356	0
+91	2555	12.85257142356	0
+91	2570	12.85279342356	0
+91	2570	12.85279342356	0
+91	2596	12.947010190284	0
+91	2596	12.947010190284	0
+91	2606	12.947232190284	0
+91	2606	12.947232190284	0

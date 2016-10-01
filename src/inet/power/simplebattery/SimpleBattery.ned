@@ -26,6 +26,8 @@ simple SimpleBattery
     
     double chargingFactor = default(2);
     double dischargingFactor = default(4);
+    double flightHeight @unit(m) = default(50m);
+    double swapHeightFactor = default(0.2);
     
     @class(SimpleBattery);
 }

@@ -355,3 +355,56 @@ Tcl error: moduleinspector.cc#232: tagOrId "f2" doesn't match any items
 ".network.c raise submodext f2"
 
 
+---- 20161001-20:28:31 ---------------------------------------------------------
+
+
+Tcl error: moduleinspector.cc#652: ptr0x4376c50 not found
+    while executing
+"error "$tag not found""
+    (procedure "ModuleInspector:getSubmodCoords" line 4)
+    invoked from within
+"ModuleInspector:getSubmodCoords $c $modptr"
+    (procedure "ModuleInspector:drawNextEventMarker" line 2)
+    invoked from within
+"ModuleInspector:drawNextEventMarker .network.c ptr0x4376c50 1"
+
+
+Tcl error: moduleinspector.cc#232: tagOrId "f6" doesn't match any items
+    while executing
+".network.c raise submodext f6"
+
+
+Tcl error: moduleinspector.cc#652: ptr0x4348350 not found
+    while executing
+"error "$tag not found""
+    (procedure "ModuleInspector:getSubmodCoords" line 4)
+    invoked from within
+"ModuleInspector:getSubmodCoords $c $modptr"
+    (procedure "ModuleInspector:drawNextEventMarker" line 2)
+    invoked from within
+"ModuleInspector:drawNextEventMarker .network.c ptr0x4348350 2"
+
+
+Tcl error: moduleinspector.cc#232: tagOrId "f6" doesn't match any items
+    while executing
+".network.c raise submodext f6"
+
+
+---- 20161001-20:42:43 ---------------------------------------------------------
+
+
+Tcl error: moduleinspector.cc#232: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#232: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#232: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+

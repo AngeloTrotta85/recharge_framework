@@ -28,7 +28,8 @@ class INET_API SimpleBattery : public cSimpleModule {
 public:
     typedef enum {
         CHARGING,
-        DISCHARGING
+        DISCHARGING,
+        UNDEFINED_STATE
     } batteryState;
 
     friend std::ostream& operator<<( std::ostream& os, const batteryState bs )
@@ -36,8 +37,11 @@ public:
         if (bs == CHARGING) {
             os << "CHARGING";
         }
-        else {
+        else if (bs == DISCHARGING) {
             os << "DISCHARGING";
+        }
+        else {
+            os << "UNDEFINED_STATE";
         }
 
         return os;
@@ -54,26 +58,38 @@ public:
     SimpleBattery(){}
     virtual ~SimpleBattery() {}
 
-    double getBatteryLevelAbs(void) {return batteryLevel;}
-    double getBatteryLevelPerc(void) {return batteryLevel/fullCapacity;}
+    double getBatteryLevelAbs(void) {updateBatteryLevel(); return batteryLevel;}
+    double getBatteryLevelPerc(void) {updateBatteryLevel(); return batteryLevel/fullCapacity;}
 
     bool isFull(void) {return (batteryLevel == fullCapacity);}
 
-    void setState(batteryState bs) {bState = bs;}
+    void setState(batteryState bs);
     batteryState getState(void) const {return bState;}
 
-    double getChargingFactor() const {
+    double getChargingFactorVal() const {
         return chargingFactor;
     }
 
-    double getDischargingFactor() const {
+    double getDischargingFactorVal() const {
         return dischargingFactor;
     }
+
+    double getChargingFactor(double time) const {
+        return (chargingFactor * time);
+    }
+
+    double getDischargingFactor(double time) const {
+        return (dischargingFactor * time);
+    }
+
+    double getSwapLoose(void);
 
 private:
 
     cMessage *autoMsg = nullptr;
     batteryState bState = DISCHARGING;
+
+    simtime_t lastBatteryCheck;
 
     //parameters
     double batteryLevel;
@@ -83,6 +99,8 @@ private:
 
     double chargingFactor;
     double dischargingFactor;
+    double flightHeight;
+    double swapHeightFactor;
 
 };
 

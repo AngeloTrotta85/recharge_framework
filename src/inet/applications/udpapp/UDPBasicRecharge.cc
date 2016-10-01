@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <iomanip>      // std::setprecision
+
 #include "inet/networklayer/common/L3AddressResolver.h"
 
 #include "inet/applications/base/ApplicationPacket_m.h"
@@ -76,7 +78,17 @@ void UDPBasicRecharge::initialize(int stage)
         if (isCentralized && (myAppAddr == 0)) {
             initCentralizedRecharge();
         }
+
+        EV
+        << "BATTERY STEP CHARGE: " << sb->getChargingFactor(checkRechargeTimer)
+        << " STEP DISCHARGE: " << sb->getDischargingFactor(checkRechargeTimer)
+        << " SWAP LOOSE: " << sb->getSwapLoose()
+        << endl;
     }
+}
+
+void UDPBasicRecharge::finish(void) {
+    recordScalar("LIFETIME", simTime());
 }
 
 
@@ -142,7 +154,7 @@ void UDPBasicRecharge::processStart()
 */
 void UDPBasicRecharge::processPacket(cPacket *pk)
 {
-    EV << "RECEIVED PACKET: " << pk->getName() << endl;
+    //EV << "RECEIVED PACKET: " << pk->getName() << endl;
     if (sb->getState() == power::SimpleBattery::DISCHARGING) {
         ApplicationPacketRecharge *aPkt = check_and_cast<ApplicationPacketRecharge *> (pk);
         if (myAddr != aPkt->getAddr()) {
@@ -150,7 +162,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
             cObject *c = pk->getControlInfo();
             UDPDataIndicationExt *di = check_and_cast<UDPDataIndicationExt *>(c);
 
-            EV_DEBUG << "Received recharge packet " << aPkt->getName() << " with " << di->getFullName() << endl;
+            //EV_DEBUG << "Received recharge packet " << aPkt->getName() << " with " << di->getFullName() << endl;
 
             if (neigh.count(aPkt->getAppAddr()) == 0) {
                 nodeInfo_t newInfo;
@@ -170,7 +182,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
         }
 
         emit(rcvdPkSignal, pk);
-        EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
+        //EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
         numReceived++;
     }
 
@@ -223,7 +235,7 @@ void UDPBasicRecharge::updateVirtualForces(void) {
         else  uVec = act->pos - myPos;
         uVec.normalize();
 
-        EV << "Setting force with displacement: " << springDispl << " (distance: " << distance << ")" << endl;
+        //EV << "Setting force with displacement: " << springDispl << " (distance: " << distance << ")" << endl;
         mob->addVirtualSpring(uVec, preferredDistance, springDispl);
     }
 
@@ -272,6 +284,7 @@ void UDPBasicRecharge::initCentralizedRecharge(void) {
             groupInfo_t newG;
 
             newG.chargingAppAddr = -1;
+            newG.swapNumber = 0;
             //newG.nodeList.push_front(newNodeInfo);
 
             groupList.push_front(newG);
@@ -396,65 +409,293 @@ bool compare_energy (const inet::UDPBasicRecharge::nodeAlgo_t& first, const inet
     //power::SimpleBattery *batt2 = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", second.addr)->getSubmodule("battery"));
 
     //return (batt1->getBatteryLevelAbs() < batt2->getBatteryLevelAbs());
-    if((first.energy == second.energy) && first.isCharging) {
-        return true;
+    //EV << std::scientific << std::setprecision(20) << "First " << first.energy << ":" << first.isCharging << " - Second " << second.energy << ":" << second.isCharging << endl;
+
+    if (fabs(first.energy - second.energy) < EPSILON) {
+        if (first.isCharging) {
+            return true;
+        }
+        return false;
     }
-    return first.energy < second.energy;
+    else {
+        return first.energy < second.energy;
+    }
 }
 
-void UDPBasicRecharge::decideRechargeSceduling(void) {
+bool compare_charge (const inet::UDPBasicRecharge::nodeAlgo_t& first, const inet::UDPBasicRecharge::nodeAlgo_t& second) {
+    if (first.isCharging) {
+        return true;
+    }
+    else if (second.isCharging) {
+        return false;
+    }
+    else {
+        return first.energy < second.energy;
+    }
+}
+
+bool UDPBasicRecharge::decideRechargeSceduling(void) {
+    bool ris = true;
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
-        double maxE;
 
-        getNodeWithMaxEnergy(actGI, maxE);
+        bool groupRis = decideRechargeScedulingGroup(actGI);
 
-        int numSteps = (maxE - 1) / sb->getDischargingFactor();
-        int numChargeSlots = numSteps / (actGI->nodeList.size() - 1);
-        //int plusSteps = ((int) maxE) % ((int)sb->getDischargingFactor());
-        int plusSteps = numSteps - (numChargeSlots * (actGI->nodeList.size() - 1));
+        ris = ris && groupRis;
+    }
 
-        updateBatteryVals(&(actGI->nodeList));
+    return ris;
+}
 
-        /*for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-            nodeAlgo_t *actNO = &(*itn);
-            power::SimpleBattery *batt = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", actNO->addr)->getSubmodule("battery"));
-            actNO->energy = batt->getBatteryLevelAbs();
-        }*/
-        //actGI->nodeList.sort(UDPBasicRecharge::compare_energy);
-        actGI->nodeList.sort(compare_energy);
+void UDPBasicRecharge::decideRechargeScedulingGroupLast(groupInfo_t *actGI) {
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+        actNO->assignedRecharge = 0;
+    }
 
-        for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-            nodeAlgo_t *actNO = &(*itn);
+    updateBatteryVals(&(actGI->nodeList));
+    actGI->nodeList.sort(compare_energy);
 
-            actNO->executedRecharge = 0;
-            actNO->assignedRecharge = numChargeSlots;
-            if (plusSteps > 0) {
-                actNO->assignedRecharge++;
-                plusSteps--;
-            }
+    // schedule to make sure "change when dying"
+    int sumDischargingSteps = 0;
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+        auto itn2 = itn;
+        itn2++;
+
+        if (itn2 != actGI->nodeList.end()) {
+            nodeAlgo_t *nextNO = &(*itn2);
+
+            // to calculate the possible steps check the next node's energy (minus 1), remove all the previous discharging steps
+            // and finally divide on the discharge factor
+
+            //EV << "Next energy: " << nextNO->energy << "; steps done: " << sumDischargingSteps;
+            actNO->assignedRecharge = (nextNO->energy - 1 - (sumDischargingSteps * sb->getDischargingFactor(checkRechargeTimer))) / sb->getDischargingFactor(checkRechargeTimer);
+            //EV << "; assigned: " << actNO->assignedRecharge << endl;
+        }
+        else {
+            actNO->assignedRecharge = (actNO->energy - 1 - (sumDischargingSteps * sb->getDischargingFactor(checkRechargeTimer))) / sb->getDischargingFactor(checkRechargeTimer);
         }
 
-        EV << "AFTER Scheduling decision -> ";
+        if (actNO->assignedRecharge < 0) {
+            actNO->assignedRecharge = 0;
+        }
+
+        sumDischargingSteps += actNO->assignedRecharge;
+    }
+}
+
+bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
+    double maxE;
+    bool ris = true;
+
+    getNodeWithMaxEnergy(actGI, maxE);
+
+    int numSteps = (maxE - 1) / sb->getDischargingFactor(checkRechargeTimer);
+    int numChargeSlots = numSteps / (actGI->nodeList.size() - 1);
+    //int plusSteps = ((int) maxE) % ((int)sb->getDischargingFactor());
+    int plusSteps = numSteps - (numChargeSlots * (actGI->nodeList.size() - 1));
+
+
+    updateBatteryVals(&(actGI->nodeList));
+    printChargingInfo("BEFORE SORT -> ");
+    actGI->nodeList.sort(compare_energy);
+    printChargingInfo("AFTER SORT -> ");
+
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        actNO->executedRecharge = 0;
+        actNO->assignedRecharge = numChargeSlots;
+        if (plusSteps > 0) {
+            actNO->assignedRecharge++;
+            plusSteps--;
+        }
+    }
+
+    printChargingInfo("BEFORE CHECKING FEASIBILITY -> ");
+
+    //check the feasibility of the schedule
+    bool feasible = true;
+    int requestSteps = 0;
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+        requestSteps += actNO->assignedRecharge;
+    }
+
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        //int possibleSteps = (actNO->energy - 1 + (actNO->assignedRecharge * sb->getChargingFactor())) / sb->getDischargingFactor();
+        int possibleSteps = ((actNO->energy - 1) / sb->getDischargingFactor(checkRechargeTimer)) + actNO->assignedRecharge;
+
+        EV << "RequestSteps: " << requestSteps << " - PossibleSteps: " << possibleSteps << endl;
+
+        if ((requestSteps < ((int)actGI->nodeList.size())) || (possibleSteps < requestSteps)) {
+            EV << "NOT FEASIBLE!!!" << endl;
+            feasible = false;
+            break;
+        }
+    }
+
+    if (!feasible) {
+        decideRechargeScedulingGroupLast(actGI);
+        ris = false;
+    }
+
+    printChargingInfo("AFTER Scheduling decision -> ");
+
+    return ris;
+}
+
+void UDPBasicRecharge::printChargingInfo(const char *str) {
+    for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        groupInfo_t *actGI = &(*it);
+
+        EV << str;
         for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
             nodeAlgo_t *actNO = &(*itn);
 
-            EV << actNO->energy << "|" << actNO->assignedRecharge << "|" << actNO->isCharging << "  ";
+            EV << "[" << actNO->addr << "]" << actNO->energy << "|" << actNO->executedRecharge << "/" << actNO->assignedRecharge << "|" << actNO->isCharging << "  ";
         }
         EV << endl;
+    }
+}
+
+void UDPBasicRecharge::printChargingInfo(void) {
+    printChargingInfo("BATTERY INFO -> ");
+}
+
+void UDPBasicRecharge::checkAliveGroup(groupInfo_t *actGI) {
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        if ((actNO->energy < sb->getDischargingFactor(checkRechargeTimer)) && (!actNO->isCharging)) {
+            EV << "System dead... finishing the simulation" << endl;
+            printChargingInfo("BATTERY FINAL STATE -> ");
+            endSimulation();
+        }
     }
 }
 
 void UDPBasicRecharge::checkCentralizedRecharge(void) {
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
-        for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-            nodeAlgo_t *actNO = &(*itn);
-            if ((actNO->executedRecharge == actNO->assignedRecharge) && actNO->isCharging) {
 
+        checkAliveGroup(actGI);
+
+        checkCentralizedRechargeGroup(actGI);
+    }
+    printChargingInfo();
+}
+
+void UDPBasicRecharge::checkCentralizedRechargeGroup(groupInfo_t *actGI) {
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        updateBatteryVals(&(actGI->nodeList));
+
+        if (actGI->chargingAppAddr < 0) {
+            // no-body is charging (this is the first time)
+            actNO->isCharging = true;
+            actGI->chargingAppAddr = actNO->addr;
+
+            putNodeInCharging(actNO->addr);
+
+            EV << "FIRST SCHEDULER STEP" << endl;
+
+            // PUT THE OTHERS IN DISCHARGE
+            itn++;
+            for (; itn != actGI->nodeList.end(); itn++){
+                nodeAlgo_t *actNO3 = &(*itn);
+                putNodeInDischarging(actNO3->addr);
             }
+
+            break;
+        }
+        else if (actNO->isCharging) {
+
+            // recharging slot executed
+            actNO->executedRecharge++;
+
+            if (actNO->executedRecharge == actNO->assignedRecharge) {
+                // recharge fase finished... swap the charging uav with the next one
+                //actNO->isCharging = false;
+
+                itn++;
+                if (itn != actGI->nodeList.end()) {
+                    nodeAlgo_t *actNO2 = &(*itn);
+
+                    if (actNO2->assignedRecharge > 0) {
+                        actNO->isCharging = false;
+                        putNodeInDischarging(actNO->addr);
+
+                        actNO2->isCharging = true;
+                        putNodeInCharging(actNO2->addr);
+
+                        actGI->chargingAppAddr = actNO2->addr;
+                        actGI->swapNumber++;
+                    }
+                }
+                else {
+                    // I'm the last one, so start again
+                    decideRechargeScedulingGroup(actGI);
+
+                    if (!actGI->nodeList.begin()->isCharging) {
+
+                        EV << "THE FIRST ONE IS NOT IN CHARGING !!!!! WHY???" << endl;
+                        printChargingInfo("BEFORE SORT -> ");
+                        actGI->nodeList.sort(compare_charge);
+                        printChargingInfo("AFTER SORT -> ");
+
+                        /*if (nextPossible) {
+                            EV << "THE FIRST ONE IS NOT IN CHARGING !!!!! WHY???" << endl;
+
+                            actGI->chargingAppAddr = -1;
+                            for (itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+                                nodeAlgo_t *actNO3 = &(*itn);
+                                actNO3->isCharging = false;
+                                putNodeInDischarging(actNO3->addr);
+                            }
+
+                            checkCentralizedRechargeGroup(actGI);
+                        }*/
+                    }
+
+                    //actGI->chargingAppAddr = -1;
+                    //actNO->isCharging = false;
+                    //putNodeInDischarging(actNO->addr);
+
+                    //checkCentralizedRechargeGroup(actGI);
+                }
+
+                break;
+            }
+            //else {
+                //nothing to do
+            //}
         }
     }
+}
+
+void UDPBasicRecharge::putNodeInCharging(int addr) {
+    // setting the node in charging
+    VirtualSpringMobility *mobN = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", addr)->getSubmodule("mobility"));
+    power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", addr)->getSubmodule("battery"));
+    UDPBasicRecharge *nodeN = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", addr)->getSubmodule("udpApp", 0));
+
+    battN->setState(power::SimpleBattery::CHARGING);
+    mobN->clearVirtualSpringsAndsetPosition(rebornPos);
+    nodeN->neigh.clear();
+}
+
+void UDPBasicRecharge::putNodeInDischarging(int addr) {
+    // setting the node in charging
+    VirtualSpringMobility *mobN = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", addr)->getSubmodule("mobility"));
+    power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", addr)->getSubmodule("battery"));
+
+    battN->setState(power::SimpleBattery::DISCHARGING);
+    mobN->clearVirtualSpringsAndsetPosition(rebornPos);
 }
 
 } /* namespace inet */

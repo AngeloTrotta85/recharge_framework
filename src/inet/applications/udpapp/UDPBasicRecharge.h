@@ -52,6 +52,7 @@ public:
 
     typedef struct {
         int chargingAppAddr;
+        int swapNumber;
         std::list<nodeAlgo_t> nodeList;
     } groupInfo_t;
 
@@ -59,6 +60,7 @@ protected:
   virtual int numInitStages() const override { return NUM_INIT_STAGES; }
   virtual void initialize(int stage) override;
   virtual void handleMessageWhenUp(cMessage *msg) override;
+  virtual void finish(void) override;
 
   virtual void sendPacket();
   //virtual void processStart();
@@ -70,14 +72,25 @@ protected:
   virtual double calculateRechargeProb(void);
   virtual void checkRecharge(void);
   virtual void checkCentralizedRecharge(void);
+  virtual void checkCentralizedRechargeGroup(groupInfo_t *actGI);
   virtual void initCentralizedRecharge(void);
 
-  virtual void decideRechargeSceduling(void);
+  virtual void checkAliveGroup(groupInfo_t *actGI);
+
+  virtual bool decideRechargeSceduling(void);
+  virtual bool decideRechargeScedulingGroup(groupInfo_t *actGI);
+  virtual void decideRechargeScedulingGroupLast(groupInfo_t *actGI);
 
   int getNodeWithMaxEnergy(groupInfo_t *gi, double &battVal);
   int getNodeWithMinEnergy(groupInfo_t *gi, double &battVal);
 
   void updateBatteryVals(std::list<nodeAlgo_t> *list);
+
+  void printChargingInfo(void);
+  void printChargingInfo(const char *str);
+
+  void putNodeInCharging(int addr);
+  void putNodeInDischarging(int addr);
 
 public:
     UDPBasicRecharge() {}

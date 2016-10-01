@@ -29,6 +29,12 @@ void SimpleBattery::initialize(int stage) {
 
         chargingFactor = par("chargingFactor");
         dischargingFactor = par("dischargingFactor");
+        flightHeight = par("flightHeight");
+        swapHeightFactor = par("swapHeightFactor");
+
+        lastBatteryCheck = simTime();
+
+        bState = UNDEFINED_STATE;
 
         autoMsg = new cMessage("batteryLevelUpdate");
         scheduleAt(simTime() + updateInterval, autoMsg);
@@ -49,22 +55,47 @@ void SimpleBattery::handleMessage(cMessage *msg) {
     }
 }
 
-void SimpleBattery::updateBatteryLevel(void) {
+double SimpleBattery::getSwapLoose(void) {
+    return (flightHeight * swapHeightFactor);
+}
 
-    if (bState == DISCHARGING) {
-        batteryLevel -= 1.0 * updateInterval;
+void SimpleBattery::setState(batteryState bs) {
+    batteryState old_bs = bState;
+    bState = bs;
+
+    if ((old_bs != bState) && (old_bs != UNDEFINED_STATE) && (bState != UNDEFINED_STATE)) {
+        batteryLevel -= getSwapLoose();
 
         if(batteryLevel < 0) {
             batteryLevel = 0;
         }
     }
+}
+
+void SimpleBattery::updateBatteryLevel(void) {
+
+    double timePassed = (simTime() - lastBatteryCheck).dbl();
+
+    if (bState == DISCHARGING) {
+        batteryLevel -= dischargingFactor * timePassed;
+
+        if(batteryLevel < 0) {
+            batteryLevel = 0;
+        }
+
+        //EV << "BATTERY DISCHARGING. ACTUAL VALUE: " << batteryLevel << endl;
+    }
     else if (bState == CHARGING){
-        batteryLevel += 5.0 * updateInterval;
+        batteryLevel += chargingFactor * timePassed;
 
         if(batteryLevel > fullCapacity) {
             batteryLevel = fullCapacity;
         }
+
+        //EV << "BATTERY CHARGING. ACTUAL VALUE: " << batteryLevel << endl;
     }
+
+    lastBatteryCheck = simTime();
 }
 
 } /* namespace power */
