@@ -870,29 +870,34 @@ double UDPBasicRecharge::getFullCoverage(void) {
         }
     }
 
+    double actArea = 0.0;
     for (int i = 0; i < numberNodes; i++) {
         VirtualSpringMobility *mobN = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("mobility"));
 
         for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
             for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
-                Coord point = Coord(i,j);
-                if(point.distance(mobN->getCurrentPosition()) <= sensorRadious) {
-                    matrixVal[i][j] = true;
+                if (matrixVal[i][j] == false) {
+                    Coord point = Coord(i,j);
+                    if(point.distance(mobN->getCurrentPosition()) <= sensorRadious) {
+                        matrixVal[i][j] = true;
+                        actArea += 1.0;
+                    }
                 }
             }
         }
     }
     //printMatrix(matrixVal);
 
-    double actArea = 0.0;
-    for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
-        for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
-            if (matrixVal[i][j] == true) {
-                actArea += 1.0;
-            }
-        }
-    }
-    double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * (3.0 / 2.0) * sqrt(3.0));
+    //double actArea = 0.0;
+    //for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
+    //    for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
+    //        if (matrixVal[i][j] == true) {
+    //            actArea += 1.0;
+    //        }
+    //    }
+    //}
+    //double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * (3.0 / 2.0) * sqrt(3.0));
+    double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * 2.598076211);
 
     double ratio = actArea / maxArea;
 
