@@ -26,7 +26,8 @@ simple UDPBasicRecharge extends UDPBasicApp
     parameters:
         double checkRechargeTimer @unit(s) = default(5s);
         double sensorRadious @unit(m) = default(50m);
-        bool isCentralized = default(false);
+        string schedulingType @enum("ANALYTICAL", "ROUNDROBIN", "STIMULUS") = default("STIMULUS");
+        //bool isCentralized = default(false);
         
         int chargingStationNumber = default(3);
         

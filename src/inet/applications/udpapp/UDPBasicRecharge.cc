@@ -25,6 +25,7 @@
 #include "inet/applications/base/ApplicationPacket_m.h"
 #include "inet/transportlayer/contract/udp/UDPDataIndicationExt_m.h"
 
+#include "inet/common/geometry/common/Coord.h"
 namespace inet {
 
 Define_Module(UDPBasicRecharge)
@@ -53,8 +54,25 @@ void UDPBasicRecharge::initialize(int stage)
 
         checkRechargeTimer = par("checkRechargeTimer");
         sensorRadious = par("sensorRadious");
-        isCentralized = par("isCentralized").boolValue();
+        //isCentralized = par("isCentralized").boolValue();
         chargingStationNumber = par("chargingStationNumber");
+
+        std::string schedulingType = par("schedulingType").stdstringValue();
+        //ANALYTICAL, ROUNDROBIN, STIMULUS
+        if (schedulingType.compare("ANALYTICAL") == 0) {
+            st = ANALYTICAL;
+        }
+        else if (schedulingType.compare("ROUNDROBIN") == 0) {
+            st = ROUNDROBIN;
+        }
+        else {//if (schedulingType.compare("STIMULUS") == 0) {
+            st = STIMULUS;
+        }
+
+        isCentralized = false;
+        if ((st == ANALYTICAL) || (st == ROUNDROBIN)) {
+            isCentralized = true;
+        }
 
         autoMsgRecharge = new cMessage("msgRecharge");
         if (isCentralized) {
@@ -67,6 +85,13 @@ void UDPBasicRecharge::initialize(int stage)
             scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
 
         }
+
+        stat1sec = new cMessage("stat1secMsg");
+        scheduleAt(simTime() + 1, stat1sec);
+
+        personalUniqueCoverageVector.setName("personalCoverage");
+
+        WATCH(st);
     }
     else if (stage == INITSTAGE_LAST) {
         myAddr = L3AddressResolver().resolve(this->getParentModule()->getFullPath().c_str());
@@ -88,13 +113,43 @@ void UDPBasicRecharge::initialize(int stage)
 }
 
 void UDPBasicRecharge::finish(void) {
-    recordScalar("LIFETIME", simTime());
+    if (myAppAddr == 0) {
+
+        if (isCentralized) {
+
+            double sumEnergy = 0.0;
+            for (auto it = groupList.begin(); it != groupList.end(); it++) {
+                groupInfo_t *actGI = &(*it);
+                for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+                    nodeAlgo_t *actNO = &(*itn);
+
+                    sumEnergy += actNO->energy;
+                }
+            }
+            recordScalar("FINALENERGY", simTime());
+
+            int g = 1;
+            for (auto it = groupList.begin(); it != groupList.end(); it++) {
+                char buff[64];
+                groupInfo_t *actGI = &(*it);
+
+                snprintf(buff, sizeof(buff), "GSWAP%d", g++);
+                recordScalar(buff, actGI->swapNumber);
+            }
+        }
+
+        recordScalar("LIFETIME", simTime());
+    }
 }
 
 
 void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 {
-    if ((msg->isSelfMessage()) && (msg == autoMsgRecharge)) {
+    if ((msg->isSelfMessage()) && (msg == stat1sec)) {
+        make1secStats();
+        scheduleAt(simTime() + 0.1, msg);
+    }
+    else if ((msg->isSelfMessage()) && (msg == autoMsgRecharge)) {
         if ((sb->getState() == power::SimpleBattery::CHARGING) && (sb->isFull())){
             sb->setState(power::SimpleBattery::DISCHARGING);
 
@@ -116,6 +171,11 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
     else {
         UDPBasicApp::handleMessageWhenUp(msg);
     }
+}
+
+void UDPBasicRecharge::make1secStats(void) {
+    double persCoverage = getMyCoverageActual() / getMyCoverageMax();
+    personalUniqueCoverageVector.record(persCoverage);
 }
 /*
 void UDPBasicRecharge::processStart()
@@ -438,8 +498,14 @@ bool UDPBasicRecharge::decideRechargeSceduling(void) {
     bool ris = true;
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
+        bool groupRis = true;
 
-        bool groupRis = decideRechargeScedulingGroup(actGI);
+        if (st == ANALYTICAL) {
+            groupRis = decideRechargeScedulingGroup(actGI);
+        }
+        else if (st == ROUNDROBIN){
+            groupRis = decideRechargeScedulingGroupRR(actGI);
+        }
 
         ris = ris && groupRis;
     }
@@ -455,6 +521,7 @@ void UDPBasicRecharge::decideRechargeScedulingGroupLast(groupInfo_t *actGI) {
 
     updateBatteryVals(&(actGI->nodeList));
     actGI->nodeList.sort(compare_energy);
+    actGI->nodeList.sort(compare_charge);
 
     // schedule to make sure "change when dying"
     int sumDischargingSteps = 0;
@@ -482,7 +549,86 @@ void UDPBasicRecharge::decideRechargeScedulingGroupLast(groupInfo_t *actGI) {
         }
 
         sumDischargingSteps += actNO->assignedRecharge;
+
+        if (actNO->assignedRecharge == 0) break;
     }
+}
+
+bool UDPBasicRecharge::decideRechargeScedulingGroupRR(groupInfo_t *actGI) {
+    bool ris = true;
+
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        actNO->executedRecharge = 0;
+        actNO->assignedRecharge = 1;
+    }
+
+    return ris;
+}
+
+bool UDPBasicRecharge::checkScheduleFeasibilityGroup(groupInfo_t *actGI) {
+    //check the feasibility of the schedule
+    bool feasible = true;
+    int rechargeSteps = 0;
+
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+        rechargeSteps += actNO->assignedRecharge;
+    }
+
+    int beforeME = 0;
+    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+        nodeAlgo_t *actNO = &(*itn);
+
+        //int othersRechargeSteps = rechargeSteps - actNO->assignedRecharge;
+
+        //int possibleSteps = (actNO->energy - 1 + (actNO->assignedRecharge * sb->getChargingFactor())) / sb->getDischargingFactor();
+        //int possibleSteps = ((actNO->energy - 1 - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer))
+        //        + actNO->assignedRecharge;
+
+
+        // check if I can reach my recharge slots
+        if (feasible) {
+            double energyBeforeRecharge = actNO->energy -1 - (beforeME * sb->getDischargingFactor(checkRechargeTimer)) - sb->getSwapLoose();
+            if (energyBeforeRecharge <= 0) {
+                feasible = false;
+                EV << "I cannot reach the recharge steps. EnergyBeforeRecharge: " << energyBeforeRecharge << endl;
+            }
+            else {
+                EV << "I can reach the recharge steps. EnergyBeforeRecharge: " << energyBeforeRecharge << endl;
+            }
+        }
+
+        if (feasible) {
+            int nextME = rechargeSteps - beforeME - actNO->assignedRecharge;
+            double energyAfterRecharge = actNO->energy - 1
+                    - (beforeME * sb->getDischargingFactor(checkRechargeTimer))
+                    - (2 * sb->getSwapLoose())
+                    + (actNO->assignedRecharge * sb->getChargingFactor(checkRechargeTimer));
+            if ((energyAfterRecharge - (nextME * sb->getDischargingFactor(checkRechargeTimer))) <= 0 ) {
+                feasible = false;
+                EV << "I cannot reach the final steps. EnergyAtTheEnd: " << (energyAfterRecharge - (nextME * sb->getDischargingFactor(checkRechargeTimer))) << endl;
+            }
+            else {
+                EV << "I can reach the final steps. EnergyAtTheEnd: " << (energyAfterRecharge - (nextME * sb->getDischargingFactor(checkRechargeTimer))) << endl;
+            }
+        }
+
+        //int requestSteps = rechargeSteps;
+
+        //EV << "RequestSteps: " << rechargeSteps << " - PossibleSteps: " << possibleSteps << endl;
+
+        //if ((rechargeSteps < ((int)actGI->nodeList.size())) || (possibleSteps < rechargeSteps)) {
+        //    EV << "NOT FEASIBLE!!!" << endl;
+        //    feasible = false;
+        //   break;
+        //}
+
+        beforeME += actNO->assignedRecharge;
+    }
+
+    return feasible;
 }
 
 bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
@@ -515,32 +661,22 @@ bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
 
     printChargingInfo("BEFORE CHECKING FEASIBILITY -> ");
 
-    //check the feasibility of the schedule
-    bool feasible = true;
-    int requestSteps = 0;
-    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-        nodeAlgo_t *actNO = &(*itn);
-        requestSteps += actNO->assignedRecharge;
-    }
+    if (!checkScheduleFeasibilityGroup(actGI)) {
 
-    for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-        nodeAlgo_t *actNO = &(*itn);
+        for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+            nodeAlgo_t *actNO = &(*itn);
 
-        //int possibleSteps = (actNO->energy - 1 + (actNO->assignedRecharge * sb->getChargingFactor())) / sb->getDischargingFactor();
-        int possibleSteps = ((actNO->energy - 1) / sb->getDischargingFactor(checkRechargeTimer)) + actNO->assignedRecharge;
-
-        EV << "RequestSteps: " << requestSteps << " - PossibleSteps: " << possibleSteps << endl;
-
-        if ((requestSteps < ((int)actGI->nodeList.size())) || (possibleSteps < requestSteps)) {
-            EV << "NOT FEASIBLE!!!" << endl;
-            feasible = false;
-            break;
+            actNO->executedRecharge = 0;
+            actNO->assignedRecharge = 1;
         }
-    }
+        actGI->nodeList.sort(compare_charge);
 
-    if (!feasible) {
-        decideRechargeScedulingGroupLast(actGI);
-        ris = false;
+        printChargingInfo("BEFORE SECOND CHECKING FEASIBILITY -> ");
+
+        if (!checkScheduleFeasibilityGroup(actGI)) {
+            decideRechargeScedulingGroupLast(actGI);
+            ris = false;
+        }
     }
 
     printChargingInfo("AFTER Scheduling decision -> ");
@@ -581,19 +717,24 @@ void UDPBasicRecharge::checkAliveGroup(groupInfo_t *actGI) {
 void UDPBasicRecharge::checkCentralizedRecharge(void) {
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
+        updateBatteryVals(&(actGI->nodeList));
+    }
 
-        checkAliveGroup(actGI);
+    for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        groupInfo_t *actGI = &(*it);
 
         checkCentralizedRechargeGroup(actGI);
+
+        checkAliveGroup(actGI);
     }
     printChargingInfo();
 }
 
 void UDPBasicRecharge::checkCentralizedRechargeGroup(groupInfo_t *actGI) {
+    //updateBatteryVals(&(actGI->nodeList));
+
     for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
         nodeAlgo_t *actNO = &(*itn);
-
-        updateBatteryVals(&(actGI->nodeList));
 
         if (actGI->chargingAppAddr < 0) {
             // no-body is charging (this is the first time)
@@ -639,34 +780,44 @@ void UDPBasicRecharge::checkCentralizedRechargeGroup(groupInfo_t *actGI) {
                 }
                 else {
                     // I'm the last one, so start again
-                    decideRechargeScedulingGroup(actGI);
+                    //decideRechargeScedulingGroup(actGI);
+                    if (st == ANALYTICAL) {
+                        decideRechargeScedulingGroup(actGI);
 
-                    if (!actGI->nodeList.begin()->isCharging) {
+                        if (!actGI->nodeList.begin()->isCharging) {
 
-                        EV << "THE FIRST ONE IS NOT IN CHARGING !!!!! WHY???" << endl;
-                        printChargingInfo("BEFORE SORT -> ");
-                        actGI->nodeList.sort(compare_charge);
-                        printChargingInfo("AFTER SORT -> ");
-
-                        /*if (nextPossible) {
                             EV << "THE FIRST ONE IS NOT IN CHARGING !!!!! WHY???" << endl;
+                            printChargingInfo("BEFORE SORT -> ");
+                            actGI->nodeList.sort(compare_charge);
+                            printChargingInfo("AFTER SORT -> ");
 
-                            actGI->chargingAppAddr = -1;
-                            for (itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
-                                nodeAlgo_t *actNO3 = &(*itn);
-                                actNO3->isCharging = false;
-                                putNodeInDischarging(actNO3->addr);
-                            }
+                            /*if (nextPossible) {
+                                EV << "THE FIRST ONE IS NOT IN CHARGING !!!!! WHY???" << endl;
 
-                            checkCentralizedRechargeGroup(actGI);
-                        }*/
+                                actGI->chargingAppAddr = -1;
+                                for (itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+                                    nodeAlgo_t *actNO3 = &(*itn);
+                                    actNO3->isCharging = false;
+                                    putNodeInDischarging(actNO3->addr);
+                                }
+
+                                checkCentralizedRechargeGroup(actGI);
+                            }*/
+                        }
+
+                        //actGI->chargingAppAddr = -1;
+                        //actNO->isCharging = false;
+                        //putNodeInDischarging(actNO->addr);
+
+                        //checkCentralizedRechargeGroup(actGI);
                     }
-
-                    //actGI->chargingAppAddr = -1;
-                    //actNO->isCharging = false;
-                    //putNodeInDischarging(actNO->addr);
-
-                    //checkCentralizedRechargeGroup(actGI);
+                    else if (st == ROUNDROBIN){
+                        actGI->chargingAppAddr = -1;
+                        actNO->isCharging = false;
+                        putNodeInDischarging(actNO->addr);
+                        decideRechargeScedulingGroupRR(actGI);
+                        checkCentralizedRechargeGroup(actGI);
+                    }
                 }
 
                 break;
@@ -696,6 +847,106 @@ void UDPBasicRecharge::putNodeInDischarging(int addr) {
 
     battN->setState(power::SimpleBattery::DISCHARGING);
     mobN->clearVirtualSpringsAndsetPosition(rebornPos);
+}
+
+double UDPBasicRecharge::getMyCoverageMax(void) {
+    double maxCov = 0;
+    int matrixsideSize = (sensorRadious * 2.0) + 2.0;
+    //std::vector< std::vector<bool> > matrixVal;
+
+    //Grow rows by matrixsideSize
+    //matrixVal.resize(matrixsideSize);
+    //for(int i = 0 ; i < matrixsideSize ; ++i) {
+        //Grow Columns by matrixsideSize
+    //    matrixVal[i].resize(matrixsideSize);
+    //}
+
+    for(int i = 0 ; i < matrixsideSize ; ++i) {
+        for(int j = 0 ; j < matrixsideSize ; ++j) {      //modify matrix
+            Coord center = Coord::ZERO;
+            Coord point = Coord(i-(sensorRadious+1),j-(sensorRadious+1));
+
+            if(center.distance(point) <= sensorRadious) {
+                //matrixVal[i][j] = true;
+                maxCov++;
+            }
+            //else{
+                //matrixVal[i][j] = false;
+            //}
+        }
+
+    }
+
+    return maxCov;
+}
+
+void UDPBasicRecharge::printMatrix(std::vector< std::vector<bool> > &matrix) {
+    for(int i = 0 ; i < (int)(matrix.size()) ; ++i) {
+        for(int j = 0 ; j < (int)(matrix[i].size()) ; ++j) {
+            EV << matrix[i][j] ? "1 " : "0 ";
+        }
+        EV << endl;
+    }
+}
+
+double UDPBasicRecharge::getMyCoverageActual(void) {
+    double countCov = 0;
+    int matrixsideSize = (sensorRadious * 2.0) + 2.0;
+    std::vector< std::vector<bool> > matrixVal;
+
+    //Grow rows by matrixsideSize
+    matrixVal.resize(matrixsideSize);
+    for(int i = 0 ; i < matrixsideSize ; ++i) {
+        //Grow Columns by matrixsideSize
+        matrixVal[i].resize(matrixsideSize);
+    }
+
+    for(int i = 0 ; i < matrixsideSize ; ++i) {
+        for(int j = 0 ; j < matrixsideSize ; ++j) {      //modify matrix
+            Coord center = Coord::ZERO;
+            Coord point = Coord(i-(sensorRadious+1),j-(sensorRadious+1));
+            if(center.distance(point) <= sensorRadious) {
+                matrixVal[i][j] = true;
+            }
+            else{
+                matrixVal[i][j] = false;
+            }
+        }
+    }
+
+    //EV << "FULL " << endl;
+    //printMatrix(matrixVal);
+
+    for (auto it = neigh.begin(); it != neigh.end(); it++) {
+        nodeInfo_t *act = &(it->second);
+
+        for(int i = 0 ; i < matrixsideSize ; ++i) {
+            for(int j = 0 ; j < matrixsideSize ; ++j) {      //modify matrix
+                Coord node = act->pos - mob->getCurrentPosition();
+                Coord point = Coord(i-(sensorRadious+1),j-(sensorRadious+1));
+                if(node.distance(point) <= sensorRadious) {
+                    matrixVal[i][j] = false;
+                }
+            }
+        }
+    }
+
+    //EV << "CUT " << endl;
+    //printMatrix(matrixVal);
+
+    for(int i = 0 ; i < matrixsideSize ; ++i) {
+        for(int j = 0 ; j < matrixsideSize ; ++j) {
+            if(matrixVal[i][j] == true) {
+                countCov++;
+            }
+        }
+
+    }
+
+    EV << "NUM OF POINT COVERED UNIQUE: " << countCov;
+
+    return countCov;
+
 }
 
 } /* namespace inet */

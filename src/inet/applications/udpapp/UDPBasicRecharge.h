@@ -34,6 +34,31 @@ namespace inet {
 class INET_API UDPBasicRecharge : public UDPBasicApp {
 
 public:
+
+    typedef enum {
+        ANALYTICAL,
+        ROUNDROBIN,
+        STIMULUS
+    } Scheduling_Type;
+
+    friend std::ostream& operator<<( std::ostream& os, const Scheduling_Type sstt )
+    {
+        if (sstt == ANALYTICAL) {
+            os << "ANALYTICAL";
+        }
+        else if (sstt == ROUNDROBIN) {
+            os << "ROUNDROBIN";
+        }
+        else if (sstt == STIMULUS) {
+            os << "STIMULUS";
+        }
+        else {
+            os << "UNDEFINED_SCHEDULER";
+        }
+
+        return os;
+    }
+
     typedef struct {
         L3Address addr;
         int appAddr;
@@ -66,6 +91,8 @@ protected:
   //virtual void processStart();
   virtual void processPacket(cPacket *msg);
 
+  void make1secStats(void);
+
   virtual double calculateInterDistance(double radious);
   virtual void updateVirtualForces(void);
 
@@ -77,8 +104,10 @@ protected:
 
   virtual void checkAliveGroup(groupInfo_t *actGI);
 
+  virtual bool checkScheduleFeasibilityGroup(groupInfo_t *actGI);
   virtual bool decideRechargeSceduling(void);
   virtual bool decideRechargeScedulingGroup(groupInfo_t *actGI);
+  virtual bool decideRechargeScedulingGroupRR(groupInfo_t *actGI);
   virtual void decideRechargeScedulingGroupLast(groupInfo_t *actGI);
 
   int getNodeWithMaxEnergy(groupInfo_t *gi, double &battVal);
@@ -91,6 +120,10 @@ protected:
 
   void putNodeInCharging(int addr);
   void putNodeInDischarging(int addr);
+
+  double getMyCoverageMax(void);
+  double getMyCoverageActual(void);
+  void printMatrix(std::vector< std::vector<bool> > &matrix);
 
 public:
     UDPBasicRecharge() {}
@@ -105,6 +138,9 @@ private:
 
     cMessage *autoMsgRecharge = nullptr;
     cMessage *autoMsgCentralizedRecharge = nullptr;
+    cMessage *stat1sec = nullptr;
+
+    cOutVector personalUniqueCoverageVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
@@ -118,6 +154,7 @@ private:
     Coord rebornPos;
 
     bool isCentralized;
+    Scheduling_Type st;
     int chargingStationNumber;
 };
 
