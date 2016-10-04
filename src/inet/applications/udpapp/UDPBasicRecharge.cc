@@ -33,6 +33,7 @@ Define_Module(UDPBasicRecharge)
 UDPBasicRecharge::~UDPBasicRecharge() {
     cancelAndDelete(autoMsgRecharge);
     cancelAndDelete(autoMsgCentralizedRecharge);
+    cancelAndDelete(stat1sec);
 }
 
 void UDPBasicRecharge::initialize(int stage)
@@ -90,6 +91,7 @@ void UDPBasicRecharge::initialize(int stage)
         scheduleAt(simTime() + 1, stat1sec);
 
         personalUniqueCoverageVector.setName("personalCoverage");
+        totalCoverageVector.setName("totalCoverage");
 
         WATCH(st);
     }
@@ -147,7 +149,7 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 {
     if ((msg->isSelfMessage()) && (msg == stat1sec)) {
         make1secStats();
-        scheduleAt(simTime() + 0.1, msg);
+        scheduleAt(simTime() + 1, msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgRecharge)) {
         if ((sb->getState() == power::SimpleBattery::CHARGING) && (sb->isFull())){
@@ -176,6 +178,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 void UDPBasicRecharge::make1secStats(void) {
     double persCoverage = getMyCoverageActual() / getMyCoverageMax();
     personalUniqueCoverageVector.record(persCoverage);
+    if (myAppAddr == 0) {
+        totalCoverageVector.record(getFullCoverage());
+    }
 }
 /*
 void UDPBasicRecharge::processStart()
@@ -847,6 +852,53 @@ void UDPBasicRecharge::putNodeInDischarging(int addr) {
 
     battN->setState(power::SimpleBattery::DISCHARGING);
     mobN->clearVirtualSpringsAndsetPosition(rebornPos);
+}
+
+double UDPBasicRecharge::getFullCoverage(void) {
+
+    // create the groups
+    int numberNodes = this->getParentModule()->getVectorSize();
+    std::vector< std::vector<bool> > matrixVal;
+
+    //Grow rows by matrixsideSize
+    matrixVal.resize(mob->getConstraintAreaMax().x);
+    for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
+        //Grow Columns by matrixsideSize
+        matrixVal[i].resize(mob->getConstraintAreaMax().y);
+        for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
+            matrixVal[i][j] = false;
+        }
+    }
+
+    for (int i = 0; i < numberNodes; i++) {
+        VirtualSpringMobility *mobN = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("mobility"));
+
+        for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
+            for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
+                Coord point = Coord(i,j);
+                if(point.distance(mobN->getCurrentPosition()) <= sensorRadious) {
+                    matrixVal[i][j] = true;
+                }
+            }
+        }
+    }
+    //printMatrix(matrixVal);
+
+    double actArea = 0.0;
+    for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
+        for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
+            if (matrixVal[i][j] == true) {
+                actArea += 1.0;
+            }
+        }
+    }
+    double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * (3.0 / 2.0) * sqrt(3.0));
+
+    double ratio = actArea / maxArea;
+
+    if (ratio > 1.0) ratio = 1.0;
+
+    return ratio;
 }
 
 double UDPBasicRecharge::getMyCoverageMax(void) {

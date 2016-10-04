@@ -121,6 +121,7 @@ protected:
   void putNodeInCharging(int addr);
   void putNodeInDischarging(int addr);
 
+  double getFullCoverage(void);
   double getMyCoverageMax(void);
   double getMyCoverageActual(void);
   void printMatrix(std::vector< std::vector<bool> > &matrix);
@@ -141,6 +142,7 @@ private:
     cMessage *stat1sec = nullptr;
 
     cOutVector personalUniqueCoverageVector;
+    cOutVector totalCoverageVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
