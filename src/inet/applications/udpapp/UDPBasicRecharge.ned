@@ -31,6 +31,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         int chargingStationNumber = default(3);
         
+        double stimulusExponent = default(1);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }

@@ -65,6 +65,13 @@ public:
         double rcvPow;
         double rcvSnr;
         Coord pos;
+
+        simtime_t timestamp;
+
+        double batteryLevelAbs;
+        double batteryLevelPerc;
+        double coveragePercentage;
+        double leftLifetime;
     } nodeInfo_t;
 
     typedef struct {
@@ -91,13 +98,28 @@ protected:
   //virtual void processStart();
   virtual void processPacket(cPacket *msg);
 
-  void make1secStats(void);
+  virtual void make1secStats(void);
+
+  virtual void updateNeighbourhood(void);
 
   virtual double calculateInterDistance(double radious);
   virtual void updateVirtualForces(void);
 
+  double calculateRechargeStimuli(void);
+  double calculateRechargeThreshold(void);
+
   virtual double calculateRechargeProb(void);
   virtual void checkRecharge(void);
+
+  virtual double calculateDischargeProb(void);
+  virtual void checkDischarge(void);
+
+  virtual double calculateRechargeTime(void);
+
+  virtual bool checkRechargingStationFree(void);
+
+  virtual void checkAliveDistributed(void);
+
   virtual void checkCentralizedRecharge(void);
   virtual void checkCentralizedRechargeGroup(groupInfo_t *actGI);
   virtual void initCentralizedRecharge(void);
@@ -140,9 +162,15 @@ private:
     cMessage *autoMsgRecharge = nullptr;
     cMessage *autoMsgCentralizedRecharge = nullptr;
     cMessage *stat1sec = nullptr;
+    cMessage *dischargeTimer = nullptr;
 
     cOutVector personalUniqueCoverageVector;
     cOutVector totalCoverageVector;
+    cOutVector activeNodesVector;
+    cOutVector rechargingNodesVector;
+    cOutVector stimulusVector;
+    cOutVector thresholdVector;
+    cOutVector responseVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
@@ -158,6 +186,8 @@ private:
     bool isCentralized;
     Scheduling_Type st;
     int chargingStationNumber;
+
+    double stimulusExponent;
 };
 
 } /* namespace inet */

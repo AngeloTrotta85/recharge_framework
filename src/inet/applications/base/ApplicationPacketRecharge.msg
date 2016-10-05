@@ -31,5 +31,8 @@ packet ApplicationPacketRecharge {
     int appAddr;
     Coord pos;  
     double batteryLevelAbs;
-    double batteryLevelPerc;  
+    double batteryLevelPerc;
+    double coveragePercentage;
+    double leftLifetime;  
+    int nodeDegree;
 }

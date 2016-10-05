@@ -61,10 +61,12 @@ public:
     double getBatteryLevelAbs(void) {updateBatteryLevel(); return batteryLevel;}
     double getBatteryLevelPerc(void) {updateBatteryLevel(); return batteryLevel/fullCapacity;}
 
-    bool isFull(void) {return (batteryLevel == fullCapacity);}
+    bool isFull(void) {return (batteryLevel >= fullCapacity);}
 
     void setState(batteryState bs);
     batteryState getState(void) const {return bState;}
+
+    bool isCharging(void) {return bState == CHARGING;}
 
     double getChargingFactorVal() const {
         return chargingFactor;
@@ -83,6 +85,10 @@ public:
     }
 
     double getSwapLoose(void);
+
+    double getFullCapacity() const {
+        return fullCapacity;
+    }
 
 private:
 

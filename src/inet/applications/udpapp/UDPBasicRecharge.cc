@@ -34,6 +34,7 @@ UDPBasicRecharge::~UDPBasicRecharge() {
     cancelAndDelete(autoMsgRecharge);
     cancelAndDelete(autoMsgCentralizedRecharge);
     cancelAndDelete(stat1sec);
+    cancelAndDelete(dischargeTimer);
 }
 
 void UDPBasicRecharge::initialize(int stage)
@@ -57,6 +58,7 @@ void UDPBasicRecharge::initialize(int stage)
         sensorRadious = par("sensorRadious");
         //isCentralized = par("isCentralized").boolValue();
         chargingStationNumber = par("chargingStationNumber");
+        stimulusExponent = par("stimulusExponent");
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -66,8 +68,11 @@ void UDPBasicRecharge::initialize(int stage)
         else if (schedulingType.compare("ROUNDROBIN") == 0) {
             st = ROUNDROBIN;
         }
-        else {//if (schedulingType.compare("STIMULUS") == 0) {
+        else if (schedulingType.compare("STIMULUS") == 0) {
             st = STIMULUS;
+        }
+        else {
+            error("Wrong \"schedulingType\" parameter");
         }
 
         isCentralized = false;
@@ -84,14 +89,20 @@ void UDPBasicRecharge::initialize(int stage)
         }
         else {
             scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
-
         }
 
         stat1sec = new cMessage("stat1secMsg");
         scheduleAt(simTime() + 1, stat1sec);
 
+        dischargeTimer = new cMessage("dischargeTimer");
+
         personalUniqueCoverageVector.setName("personalCoverage");
         totalCoverageVector.setName("totalCoverage");
+        activeNodesVector.setName("activeNodes");
+        rechargingNodesVector.setName("rechargingNodes");
+        stimulusVector.setName("StimulusVal");
+        thresholdVector.setName("ThresholdVal");
+        responseVector.setName("ResponseVal");
 
         WATCH(st);
     }
@@ -104,6 +115,10 @@ void UDPBasicRecharge::initialize(int stage)
 
         if (isCentralized && (myAppAddr == 0)) {
             initCentralizedRecharge();
+        }
+
+        if(!isCentralized){
+            sb->setState(power::SimpleBattery::DISCHARGING);
         }
 
         EV
@@ -147,24 +162,39 @@ void UDPBasicRecharge::finish(void) {
 
 void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 {
-    if ((msg->isSelfMessage()) && (msg == stat1sec)) {
+    if ((msg->isSelfMessage()) && (msg == dischargeTimer)) {
+        sb->setState(power::SimpleBattery::DISCHARGING);
+        neigh.clear();
+        mob->clearVirtualSpringsAndsetPosition(rebornPos);
+    }
+    else if ((msg->isSelfMessage()) && (msg == stat1sec)) {
+        updateNeighbourhood();
         make1secStats();
         scheduleAt(simTime() + 1, msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgRecharge)) {
-        if ((sb->getState() == power::SimpleBattery::CHARGING) && (sb->isFull())){
-            sb->setState(power::SimpleBattery::DISCHARGING);
+        //if ((sb->getState() == power::SimpleBattery::CHARGING) && (sb->isFull())){
+        //    sb->setState(power::SimpleBattery::DISCHARGING);
+        //
+        //    mob->clearVirtualSpringsAndsetPosition(rebornPos);
+        //}
 
-            mob->clearVirtualSpringsAndsetPosition(rebornPos);
+        if (sb->getState() == power::SimpleBattery::CHARGING){
+            checkDischarge();
         }
-
-        if (sb->getState() == power::SimpleBattery::DISCHARGING){
+        else if (sb->getState() == power::SimpleBattery::DISCHARGING){
             checkRecharge();
-            scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), msg);
+            //scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), msg);
         }
-        else {
-            scheduleAt(simTime() + 0.5, msg);
+        //else {
+        //    scheduleAt(simTime() + 0.5, msg);
+        //}
+
+        if (myAppAddr == 0) {
+            checkAliveDistributed();
         }
+
+        scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgCentralizedRecharge)) {
         checkCentralizedRecharge();
@@ -180,6 +210,30 @@ void UDPBasicRecharge::make1secStats(void) {
     personalUniqueCoverageVector.record(persCoverage);
     if (myAppAddr == 0) {
         totalCoverageVector.record(getFullCoverage());
+
+        int nnodesActive = 0;
+        int nnodesRecharging = 0;
+
+        int numberNodes = this->getParentModule()->getVectorSize();
+
+        for (int i = 0; i < numberNodes; i++) {
+            power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+
+            if (battN->isCharging()) {
+                nnodesRecharging++;
+            }
+            else {
+                nnodesActive++;
+            }
+        }
+
+        activeNodesVector.record(nnodesActive);
+        rechargingNodesVector.record(nnodesRecharging);
+    }
+    if (!isCentralized) {
+        stimulusVector.record(calculateRechargeStimuli());
+        thresholdVector.record(calculateRechargeThreshold());
+        responseVector.record(calculateRechargeProb());
     }
 }
 /*
@@ -242,6 +296,13 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
             node->rcvPow = di->getPow();
             node->rcvSnr = di->getSnr();
 
+            node->timestamp = simTime();
+
+            node->batteryLevelAbs = aPkt->getBatteryLevelAbs();
+            node->batteryLevelPerc = aPkt->getBatteryLevelPerc();
+            node->coveragePercentage = aPkt->getCoveragePercentage();
+            node->leftLifetime = aPkt->getLeftLifetime();
+
             updateVirtualForces();
 
         }
@@ -269,12 +330,30 @@ void UDPBasicRecharge::sendPacket()
         payload->setAppAddr(myAppAddr);
         payload->setBatteryLevelAbs(sb->getBatteryLevelAbs());
         payload->setBatteryLevelAbs(sb->getBatteryLevelPerc());
+        payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
+        payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
 
         L3Address destAddr = chooseDestAddr();
         emit(sentPkSignal, payload);
         socket.sendTo(payload, destAddr, destPort);
         numSent++;
     }
+}
+
+void UDPBasicRecharge::updateNeighbourhood(void) {
+    bool removed;
+    do {
+        removed = false;
+        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+
+            if ((simTime() - act->timestamp) > (2.0 * par("sendInterval").doubleValue())) {
+                neigh.erase(it);
+                removed = true;
+                break;
+            }
+        }
+    }while(removed);
 }
 
 
@@ -313,16 +392,91 @@ void UDPBasicRecharge::updateVirtualForces(void) {
     }
 }
 
-double UDPBasicRecharge::calculateRechargeProb(void) {
-    double ris = 0.1;
+bool UDPBasicRecharge::checkRechargingStationFree(void) {
+    bool ris = true;
+    int numberNodes = this->getParentModule()->getVectorSize();
+    int nodesInCharging = 0;
+
+    for (int i = 0; i < numberNodes; i++) {
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+
+        if (battN->isCharging()) {
+            nodesInCharging++;
+        }
+    }
+
+    if (nodesInCharging >= chargingStationNumber) {
+        ris = false;
+    }
 
     return ris;
+}
+
+double UDPBasicRecharge::calculateRechargeProb(void) {
+    double stim = calculateRechargeStimuli();
+    double tetha = calculateRechargeThreshold();
+
+    return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
+
+}
+
+double UDPBasicRecharge::calculateRechargeStimuli(void) {
+    double s = 1.0 - (getMyCoverageActual() / getMyCoverageMax());
+
+    if (s < 0) s = 0;
+    else if (s > 1) s = 1;
+
+    return s;
+}
+
+double UDPBasicRecharge::calculateRechargeThreshold(void) {
+    double t = 0;
+    double myleft = sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer);
+    double maxLeftTime = myleft;
+
+
+    for (auto it = neigh.begin(); it != neigh.end(); it++) {
+        nodeInfo_t *act = &(it->second);
+
+        if (act->leftLifetime > maxLeftTime) {
+            maxLeftTime = act->leftLifetime;
+        }
+    }
+
+    t = myleft / maxLeftTime;
+
+    if (t < 0) t = 0;
+    else if (t > 1) t = 1;
+
+    return t;
+
+}
+
+double UDPBasicRecharge::calculateRechargeTime(void) {
+
+    // default charge until full charge
+    double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
+
+    if (neigh.size() > 0) {
+        double sumE = sb->getBatteryLevelAbs();
+        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+
+            sumE += act->batteryLevelAbs;
+        }
+
+        double averageE = sumE / (((double) neigh.size()) + 1.0);
+
+        tt = averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()));
+    }
+
+    return tt;
 }
 
 void UDPBasicRecharge::checkRecharge(void) {
     double prob = calculateRechargeProb();
 
-    if (dblrand() < prob) {
+    if (checkRechargingStationFree() && (dblrand() < prob)) {
         sb->setState(power::SimpleBattery::CHARGING);
 
         //stop the node
@@ -330,7 +484,44 @@ void UDPBasicRecharge::checkRecharge(void) {
         //mob->clearVirtualSprings();
         mob->clearVirtualSpringsAndsetPosition(rebornPos);
 
+        scheduleAt(simTime() + calculateRechargeTime(), dischargeTimer);
+
         //mob->addVirtualSpring(Coord(1,1,0), 1, 1000);
+    }
+}
+
+double UDPBasicRecharge::calculateDischargeProb(void) {
+    if (sb->isFull()) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+void UDPBasicRecharge::checkDischarge(void) {
+    double prob = calculateDischargeProb();
+
+    if (dblrand() < prob) {
+        sb->setState(power::SimpleBattery::DISCHARGING);
+
+        //stop the node
+        neigh.clear();
+        //mob->clearVirtualSprings();
+        mob->clearVirtualSpringsAndsetPosition(rebornPos);
+    }
+
+}
+
+void UDPBasicRecharge::checkAliveDistributed(void) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+
+    for (int i = 0; i < numberNodes; i++) {
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+
+        if (battN->getBatteryLevelAbs() <= 0) {
+            endSimulation();
+        }
     }
 }
 
