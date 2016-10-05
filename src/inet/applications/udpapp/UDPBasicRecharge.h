@@ -72,6 +72,7 @@ public:
         double batteryLevelPerc;
         double coveragePercentage;
         double leftLifetime;
+        int nodeDegree;
     } nodeInfo_t;
 
     typedef struct {
@@ -119,6 +120,8 @@ protected:
   virtual bool checkRechargingStationFree(void);
 
   virtual void checkAliveDistributed(void);
+
+  virtual int calculateNodeDegree(void);
 
   virtual void checkCentralizedRecharge(void);
   virtual void checkCentralizedRechargeGroup(groupInfo_t *actGI);

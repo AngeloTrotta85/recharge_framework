@@ -302,6 +302,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
             node->batteryLevelPerc = aPkt->getBatteryLevelPerc();
             node->coveragePercentage = aPkt->getCoveragePercentage();
             node->leftLifetime = aPkt->getLeftLifetime();
+            node->nodeDegree = aPkt->getNodeDegree();
 
             updateVirtualForces();
 
@@ -332,12 +333,18 @@ void UDPBasicRecharge::sendPacket()
         payload->setBatteryLevelAbs(sb->getBatteryLevelPerc());
         payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
         payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
+        payload->setNodeDegree(calculateNodeDegree());
 
         L3Address destAddr = chooseDestAddr();
         emit(sentPkSignal, payload);
         socket.sendTo(payload, destAddr, destPort);
         numSent++;
     }
+}
+
+int UDPBasicRecharge::calculateNodeDegree(void) {
+    //TODO
+    return 1;
 }
 
 void UDPBasicRecharge::updateNeighbourhood(void) {
