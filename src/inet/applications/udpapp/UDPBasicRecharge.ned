@@ -24,9 +24,9 @@ import inet.applications.udpapp.UDPBasicApp;
 simple UDPBasicRecharge extends UDPBasicApp
 {
     parameters:
-        double checkRechargeTimer @unit(s) = default(5s);
+        double checkRechargeTimer @unit(s) = default(30s);
         double sensorRadious @unit(m) = default(50m);
-        string schedulingType @enum("ANALYTICAL", "ROUNDROBIN", "STIMULUS") = default("STIMULUS");
+        string schedulingType @enum("ANALYTICAL", "ROUNDROBIN", "STIMULUS", "PROBABILISTIC") = default("STIMULUS");
         //bool isCentralized = default(false);
         
         int chargingStationNumber = default(3);
@@ -34,6 +34,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         int roundrobinRechargeSize = default(1);
         
         double stimulusExponent = default(1);
+        
+        int numRechargeSlotsProbabilistic = default(10);
         
         @display("i=block/app");
         @class(UDPBasicRecharge);

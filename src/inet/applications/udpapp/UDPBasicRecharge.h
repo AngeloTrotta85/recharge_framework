@@ -38,7 +38,8 @@ public:
     typedef enum {
         ANALYTICAL,
         ROUNDROBIN,
-        STIMULUS
+        STIMULUS,
+        PROBABILISTIC
     } Scheduling_Type;
 
     friend std::ostream& operator<<( std::ostream& os, const Scheduling_Type sstt )
@@ -106,6 +107,9 @@ protected:
   virtual double calculateInterDistance(double radious);
   virtual void updateVirtualForces(void);
 
+  double calculateRechargeStimuliEnergyFactor(void);
+  double calculateRechargeStimuliTimeFactor(void);
+
   double calculateRechargeStimuli(void);
   double calculateRechargeThreshold(void);
 
@@ -151,6 +155,9 @@ protected:
   double getMyCoverageActual(void);
   void printMatrix(std::vector< std::vector<bool> > &matrix);
 
+
+  virtual void sendRechargeMessage(void);
+
 public:
     UDPBasicRecharge() {}
     virtual ~UDPBasicRecharge();
@@ -166,20 +173,27 @@ private:
     cMessage *autoMsgCentralizedRecharge = nullptr;
     cMessage *stat1sec = nullptr;
     cMessage *dischargeTimer = nullptr;
+    cMessage *goToCharge = nullptr;
 
-    cOutVector personalUniqueCoverageVector;
+    //cOutVector personalUniqueCoverageVector;
     cOutVector totalCoverageVector;
     cOutVector activeNodesVector;
     cOutVector rechargingNodesVector;
     cOutVector stimulusVector;
     cOutVector thresholdVector;
     cOutVector responseVector;
+    cOutVector degreeVector;
+    cOutVector timeFactorVector;
+    cOutVector energyFactorVector;
+    cOutVector energyVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
 
     std::map<int, nodeInfo_t> neigh;
     std::list<groupInfo_t> groupList;
+
+    simtime_t lastRechargeTimestamp;
 
     //parameters
     double checkRechargeTimer;
@@ -191,6 +205,8 @@ private:
     int chargingStationNumber;
 
     int roundrobinRechargeSize;
+
+    int numRechargeSlotsProbabilistic;
 
     double stimulusExponent;
 };

@@ -5,16 +5,32 @@
     <inputs name="/recharge_framework/simulations/test/results/General-*.sca"/>
   </inputs>
   <datasets>
-    <datasets name="personal coverage">
-      <items xsi:type="scave:Add" filterPattern="personalCoverage" type="VECTOR"/>
-      <items xsi:type="scave:LineChart" name="personalCoverage" lineNameFormat=""/>
-      <items xsi:type="scave:Apply" operation="aggregator">
-        <params name="function" value="average"/>
-      </items>
-      <items xsi:type="scave:LineChart" name="personalCoverageAverage" lineNameFormat=""/>
+    <datasets name="stimoliResp">
+      <items xsi:type="scave:Add" filterPattern="StimulusVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="stimThre" lineNameFormat=""/>
+    </datasets>
+    <datasets name="thre">
+      <items xsi:type="scave:Add" filterPattern="ThresholdVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="thre" lineNameFormat=""/>
+    </datasets>
+    <datasets name="prob">
+      <items xsi:type="scave:Add" filterPattern="ResponseVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="res" lineNameFormat=""/>
+    </datasets>
+    <datasets name="timeFactor">
+      <items xsi:type="scave:Add" filterPattern="TimeFactorVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="time factor" lineNameFormat=""/>
+    </datasets>
+    <datasets name="energyfactor">
+      <items xsi:type="scave:Add" filterPattern="EnergyFactorVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="energyfactor" lineNameFormat=""/>
+    </datasets>
+    <datasets name="Energy">
+      <items xsi:type="scave:Add" filterPattern="EnergyVal" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="Energy" lineNameFormat=""/>
     </datasets>
   </datasets>
   <chartSheets>
-    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.0/@items.3"/>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.1/@items.1 //@datasets/@datasets.2/@items.1 //@datasets/@datasets.3/@items.1 //@datasets/@datasets.4/@items.1 //@datasets/@datasets.5/@items.1"/>
   </chartSheets>
 </scave:Analysis>

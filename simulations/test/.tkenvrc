@@ -1,4 +1,8 @@
 # Partial OMNeT++/Tkenv config file -- see $HOME/.tkenvrc as well
 config default-configname	{General}
 config default-runnumber	{0}
+inspector {Net80211test.host[0].battery} SimpleBattery 17 1 464x318+964+28:normal
+inspector {Net80211test.host[2].battery} SimpleBattery 99 1 464x318+487+31:normal
+inspector {Net80211test.host[3].battery} SimpleBattery 140 1 464x318+-2+29:normal
+inspector {Net80211test.host[1].battery} SimpleBattery 58 1 464x318+968+402:normal
 

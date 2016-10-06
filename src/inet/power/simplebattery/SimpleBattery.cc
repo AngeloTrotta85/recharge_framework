@@ -27,10 +27,10 @@ void SimpleBattery::initialize(int stage) {
         batteryLevel = initialCapacity;
         updateInterval = par("updateInterval");
 
-        chargingFactor = par("chargingFactor");
-        dischargingFactor = par("dischargingFactor");
+        chargingFactor = par("chargingFactor").doubleValue();
+        dischargingFactor = par("dischargingFactor").doubleValue();
         flightHeight = par("flightHeight");
-        swapHeightFactor = par("swapHeightFactor");
+        swapHeightFactor = par("swapHeightFactor").doubleValue();
 
         lastBatteryCheck = simTime();
 

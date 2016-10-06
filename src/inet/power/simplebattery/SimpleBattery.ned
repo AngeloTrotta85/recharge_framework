@@ -20,14 +20,14 @@ package inet.power.simplebattery;
 //
 simple SimpleBattery
 {
-    double nominalCapacity @unit(J) = default(1000J);
+    double nominalCapacity @unit(J) = default(100000J);
     double initialCapacity @unit(J) = default(nominalCapacity);
     double updateInterval @unit(s) = default(0.2s);
     
-    double chargingFactor = default(2);
-    double dischargingFactor = default(4);
+    double chargingFactor @unit(W) = default(25W);
+    double dischargingFactor @unit(W) = default(100W);
     double flightHeight @unit(m) = default(50m);
-    double swapHeightFactor = default(0.2);
+    double swapHeightFactor @unit(J) = default(100J);
     
     @class(SimpleBattery);
 }

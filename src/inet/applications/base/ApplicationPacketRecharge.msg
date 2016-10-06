@@ -35,4 +35,5 @@ packet ApplicationPacketRecharge {
     double coveragePercentage;
     double leftLifetime;  
     int nodeDegree;
+    bool goingToRecharge;
 }
