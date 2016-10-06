@@ -190,6 +190,8 @@ private:
     Scheduling_Type st;
     int chargingStationNumber;
 
+    int roundrobinRechargeSize;
+
     double stimulusExponent;
 };
 

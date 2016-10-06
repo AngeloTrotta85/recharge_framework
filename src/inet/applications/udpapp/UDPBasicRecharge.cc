@@ -59,6 +59,7 @@ void UDPBasicRecharge::initialize(int stage)
         //isCentralized = par("isCentralized").boolValue();
         chargingStationNumber = par("chargingStationNumber");
         stimulusExponent = par("stimulusExponent");
+        roundrobinRechargeSize = par("roundrobinRechargeSize");
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -764,7 +765,7 @@ bool UDPBasicRecharge::decideRechargeScedulingGroupRR(groupInfo_t *actGI) {
         nodeAlgo_t *actNO = &(*itn);
 
         actNO->executedRecharge = 0;
-        actNO->assignedRecharge = 1;
+        actNO->assignedRecharge = roundrobinRechargeSize;
     }
 
     return ris;
