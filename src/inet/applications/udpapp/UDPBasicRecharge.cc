@@ -1318,6 +1318,7 @@ void UDPBasicRecharge::putNodeInDischarging(int addr) {
 double UDPBasicRecharge::getFullCoverage(void) {
 
     // create the groups
+    int activeNodes = 0;
     int numberNodes = this->getParentModule()->getVectorSize();
     std::vector< std::vector<bool> > matrixVal;
 
@@ -1334,14 +1335,18 @@ double UDPBasicRecharge::getFullCoverage(void) {
     double actArea = 0.0;
     for (int i = 0; i < numberNodes; i++) {
         VirtualSpringMobility *mobN = check_and_cast<VirtualSpringMobility *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("mobility"));
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
 
-        for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
-            for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
-                if (matrixVal[i][j] == false) {
-                    Coord point = Coord(i,j);
-                    if(point.distance(mobN->getCurrentPosition()) <= sensorRadious) {
-                        matrixVal[i][j] = true;
-                        actArea += 1.0;
+        if (battN->getState() == power::SimpleBattery::DISCHARGING) {
+            activeNodes++;
+            for(int i = 0 ; i < (int)matrixVal.size() ; ++i) {
+                for(int j = 0 ; j < (int)matrixVal[i].size() ; ++j) {      //modify matrix
+                    if (matrixVal[i][j] == false) {
+                        Coord point = Coord(i,j);
+                        if(point.distance(mobN->getCurrentPosition()) <= sensorRadious) {
+                            matrixVal[i][j] = true;
+                            actArea += 1.0;
+                        }
                     }
                 }
             }
@@ -1358,7 +1363,8 @@ double UDPBasicRecharge::getFullCoverage(void) {
     //    }
     //}
     //double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * (3.0 / 2.0) * sqrt(3.0));
-    double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * 2.598076211);
+    //double maxArea = ((double) numberNodes) * ((sensorRadious*sensorRadious) * 2.598076211);
+    double maxArea = ((double) (numberNodes - chargingStationNumber)) * ((sensorRadious*sensorRadious) * 2.598076211);
 
     double ratio = actArea / maxArea;
 
