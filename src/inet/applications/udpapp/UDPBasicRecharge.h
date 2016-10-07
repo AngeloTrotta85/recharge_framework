@@ -101,6 +101,7 @@ protected:
   virtual void processPacket(cPacket *msg);
 
   virtual void make1secStats(void);
+  virtual void make5secStats(void);
 
   virtual void updateNeighbourhood(void);
 
@@ -172,6 +173,7 @@ private:
     cMessage *autoMsgRecharge = nullptr;
     cMessage *autoMsgCentralizedRecharge = nullptr;
     cMessage *stat1sec = nullptr;
+    cMessage *stat5sec = nullptr;
     cMessage *dischargeTimer = nullptr;
     cMessage *goToCharge = nullptr;
 
@@ -209,6 +211,10 @@ private:
     int numRechargeSlotsProbabilistic;
 
     double stimulusExponent;
+
+    bool makeLowEnergyFactorCurves;
+    double timeFactorMultiplier;
+    bool godCheckIfRechargeStationFree;
 };
 
 } /* namespace inet */

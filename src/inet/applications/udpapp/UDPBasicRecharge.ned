@@ -37,6 +37,11 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         int numRechargeSlotsProbabilistic = default(10);
         
+        bool makeLowEnergyFactorCurves = default(true);
+        double timeFactorMultiplier = default(2);
+        
+        bool godCheckIfRechargeStationFree = default(true);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }
