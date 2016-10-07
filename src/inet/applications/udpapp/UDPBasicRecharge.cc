@@ -164,7 +164,7 @@ void UDPBasicRecharge::finish(void) {
                     sumEnergy += actNO->energy;
                 }
             }
-            recordScalar("FINALENERGY", simTime());
+            recordScalar("FINALENERGY", sumEnergy);
 
             int g = 1;
             for (auto it = groupList.begin(); it != groupList.end(); it++) {
@@ -174,6 +174,16 @@ void UDPBasicRecharge::finish(void) {
                 snprintf(buff, sizeof(buff), "GSWAP%d", g++);
                 recordScalar(buff, actGI->swapNumber);
             }
+        }
+        else {
+            int numberNodes = this->getParentModule()->getVectorSize();
+
+            double sumEnergy = 0.0;
+            for (int i = 0; i < numberNodes; i++) {
+                power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+                sumEnergy += battN->getBatteryLevelAbs();
+            }
+            recordScalar("FINALENERGY", sumEnergy);
         }
 
         recordScalar("LIFETIME", simTime());
@@ -1181,7 +1191,7 @@ void UDPBasicRecharge::checkCentralizedRecharge(void) {
 
         checkCentralizedRechargeGroup(actGI);
 
-        checkAliveGroup(actGI);
+        //checkAliveGroup(actGI);
     }
     printChargingInfo();
 }
