@@ -36,6 +36,8 @@ void SimpleBattery::initialize(int stage) {
 
         bState = UNDEFINED_STATE;
 
+        sumSwap = 0;
+
         autoMsg = new cMessage("batteryLevelUpdate");
         scheduleAt(simTime() + updateInterval, autoMsg);
 
@@ -55,12 +57,19 @@ void SimpleBattery::handleMessage(cMessage *msg) {
     }
 }
 
+void SimpleBattery::finish(void) {
+    recordScalar("BATTERYSWAP", sumSwap);
+}
+
 double SimpleBattery::getSwapLoose(void) {
     return (flightHeight * swapHeightFactor);
 }
 
 void SimpleBattery::setState(batteryState bs) {
     batteryState old_bs = bState;
+
+    updateBatteryLevel();
+
     bState = bs;
 
     if ((old_bs != bState) && (old_bs != UNDEFINED_STATE) && (bState != UNDEFINED_STATE)) {
@@ -69,6 +78,8 @@ void SimpleBattery::setState(batteryState bs) {
         if(batteryLevel < 0) {
             batteryLevel = 0;
         }
+
+        sumSwap++;
     }
 }
 

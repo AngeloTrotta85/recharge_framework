@@ -51,6 +51,7 @@ protected:
   virtual int numInitStages() const override { return NUM_INIT_STAGES; }
   virtual void initialize(int stage) override;
   virtual void handleMessage(cMessage *msg) override;
+  virtual void finish(void) override;
 
   virtual void updateBatteryLevel(void);
 
@@ -96,6 +97,8 @@ private:
     batteryState bState = DISCHARGING;
 
     simtime_t lastBatteryCheck;
+
+    int sumSwap;
 
     //parameters
     double batteryLevel;
