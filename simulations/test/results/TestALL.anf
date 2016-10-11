@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/recharge_framework/simulations/test/results/TestAll*/*.vec"/>
+    <inputs name="/recharge_framework/simulations/test/results/TestAll*/*.sca"/>
+  </inputs>
+  <datasets>
+    <datasets name="LifeTime">
+      <items xsi:type="scave:Add" filterPattern="LIFETIME AND attr:IC(25000) AND attr:CSN(1)  AND attr:FH(0)  "/>
+      <items xsi:type="scave:BarChart" name="LifeTime">
+        <properties name="Legend.Display" value="true"/>
+      </items>
+    </datasets>
+    <datasets name="SWAP">
+      <items xsi:type="scave:Add" filterPattern="BATTERYSWAP AND attr:IC(25000) AND attr:CSN(1) AND attr:FH(0) "/>
+      <items xsi:type="scave:BarChart" name="swaps">
+        <barFields>name</barFields>
+        <averagedFields>module</averagedFields>
+      </items>
+    </datasets>
+    <datasets name="FinalE">
+      <items xsi:type="scave:Add" filterPattern="FINALENERGY AND attr:IC(25000) AND attr:CSN(3) AND attr:FH(0) "/>
+      <items xsi:type="scave:BarChart" name="finalE">
+        <barFields>name</barFields>
+        <averagedFields>module</averagedFields>
+      </items>
+    </datasets>
+    <datasets name="Coverage">
+      <items xsi:type="scave:Add" filterPattern="totalCoverage AND attr:NO(15) " type="VECTOR"/>
+      <items xsi:type="scave:Apply" operation="aggregator">
+        <params name="function" value="average"/>
+        <groupBy>NO</groupBy>
+      </items>
+      <items xsi:type="scave:LineChart" name="Coverage" lineNameFormat=""/>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.1/@items.1 //@datasets/@datasets.2/@items.1 //@datasets/@datasets.3/@items.2"/>
+  </chartSheets>
+</scave:Analysis>
