@@ -68,6 +68,7 @@ void UDPBasicRecharge::initialize(int stage)
         makeLowEnergyFactorCurves = par("makeLowEnergyFactorCurves").boolValue();
         timeFactorMultiplier = par("timeFactorMultiplier");
         godCheckIfRechargeStationFree = par("godCheckIfRechargeStationFree").boolValue();
+        numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -195,11 +196,6 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 {
     if ((msg->isSelfMessage()) && (msg == goToCharge)) {
 
-        //stop the node
-        neigh.clear();
-        //mob->clearVirtualSprings();
-        mob->clearVirtualSpringsAndsetPosition(rebornPos);
-
         if (checkRechargingStationFree()) {
             double cTime = calculateRechargeTime();
 
@@ -209,6 +205,11 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 
             scheduleAt(simTime() + cTime, dischargeTimer);
         }
+
+        //stop the node
+        neigh.clear();
+        //mob->clearVirtualSprings();
+        mob->clearVirtualSpringsAndsetPosition(rebornPos);
     }
     else if ((msg->isSelfMessage()) && (msg == dischargeTimer)) {
         sb->setState(power::SimpleBattery::DISCHARGING);
@@ -379,6 +380,8 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
 
             updateVirtualForces();
 
+            EV << "[" << myAppAddr << "] - NEW PACKET arrived. Neigh size: " << neigh.size() << endl;
+
         }
 
         emit(rcvdPkSignal, pk);
@@ -463,6 +466,9 @@ void UDPBasicRecharge::updateNeighbourhood(void) {
             nodeInfo_t *act = &(it->second);
 
             if ((simTime() - act->timestamp) > (2.0 * par("sendInterval").doubleValue())) {
+
+                EV << "[" << myAppAddr << "] - UPDATE NEIGHBOURHOOD. Removing: " << it->second.appAddr << endl;
+
                 neigh.erase(it);
                 removed = true;
                 break;
@@ -689,10 +695,15 @@ double UDPBasicRecharge::calculateRechargeThreshold(void) {
 
 double UDPBasicRecharge::calculateRechargeTime(void) {
 
+    double recTime = 0;
+
     if (st == STIMULUS) {
 
         // default charge until full charge
-        double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
+        //double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
+        double tt = numRechargeSlotsStimulusZeroNeigh * checkRechargeTimer;
+
+        EV << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
 
         if (neigh.size() > 0) {
             double sumE = sb->getBatteryLevelAbs();
@@ -704,14 +715,24 @@ double UDPBasicRecharge::calculateRechargeTime(void) {
 
             double averageE = sumE / (((double) neigh.size()) + 1.0);
 
+            EV << "RECHARGETIME STIMULUS: Average Energy: " << averageE
+                    << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
+                    << " - Neigh size: " << neigh.size()
+                    << " - checkRechargeTimer: " << checkRechargeTimer
+                    << endl;
+
             tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
         }
 
-        return tt;
+        recTime = tt;
     }
     else { //if (st == PROBABILISTIC) {
-        return numRechargeSlotsProbabilistic * checkRechargeTimer;
+        recTime = numRechargeSlotsProbabilistic * checkRechargeTimer;
     }
+
+    EV << "RECHARGETIME Final decision charge time: " << recTime << endl;
+
+    return recTime;
 }
 
 void UDPBasicRecharge::checkRecharge(void) {

@@ -36,6 +36,7 @@ simple UDPBasicRecharge extends UDPBasicApp
         double stimulusExponent = default(1);
         
         int numRechargeSlotsProbabilistic = default(10);
+        int numRechargeSlotsStimulusZeroNeigh = default(3);
         
         bool makeLowEnergyFactorCurves = default(true);
         double timeFactorMultiplier = default(2);

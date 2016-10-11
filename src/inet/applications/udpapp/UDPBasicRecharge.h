@@ -205,6 +205,7 @@ private:
     bool isCentralized;
     Scheduling_Type st;
     int chargingStationNumber;
+    int numRechargeSlotsStimulusZeroNeigh;
 
     int roundrobinRechargeSize;
 
