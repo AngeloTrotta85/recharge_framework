@@ -1428,7 +1428,13 @@ double UDPBasicRecharge::getMyCoverageMax(void) {
 void UDPBasicRecharge::printMatrix(std::vector< std::vector<bool> > &matrix) {
     for(int i = 0 ; i < (int)(matrix.size()) ; ++i) {
         for(int j = 0 ; j < (int)(matrix[i].size()) ; ++j) {
-            EV << matrix[i][j] ? "1 " : "0 ";
+            if (matrix[i][j]){
+                EV << "1 ";
+            }
+            else {
+                EV << "0 ";
+            }
+            //EV << matrix[i][j] ? "1 " : "0 ";
         }
         EV << endl;
     }
