@@ -2,3 +2,6 @@
 *_m.cc
 *_m.h
 /.computed/
+/simulations/test/results/*.sca
+/simulations/test/results/*.vec
+/simulations/test/results/*.vci
