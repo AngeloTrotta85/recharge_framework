@@ -70,6 +70,8 @@ void UDPBasicRecharge::initialize(int stage)
         godCheckIfRechargeStationFree = par("godCheckIfRechargeStationFree").boolValue();
         numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
 
+        firstRecharge = true;
+
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
         if (schedulingType.compare("ANALYTICAL") == 0) {
@@ -196,6 +198,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 {
     if ((msg->isSelfMessage()) && (msg == goToCharge)) {
 
+        firstRecharge = false;
+
         if (checkRechargingStationFree()) {
             double cTime = calculateRechargeTime();
 
@@ -261,7 +265,7 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 
 void UDPBasicRecharge::make5secStats(void) {
     if (myAppAddr == 0) {
-        totalCoverageVector.record(getFullCoverage());
+        //totalCoverageVector.record(getFullCoverage());
     }
 }
 
@@ -353,6 +357,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                     neigh.erase(aPkt->getAppAddr());
                 }
                 lastRechargeTimestamp = simTime();
+                firstRecharge = false;
             }
             else {
 
@@ -564,10 +569,10 @@ double UDPBasicRecharge::calculateRechargeStimuliTimeFactor(void) {
 
     double rechargeEstimation = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
     if (neigh.size() > 0) {
-        rechargeEstimation = averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()));
+        rechargeEstimation = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
     }
-    double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / rechargeEstimation;
-    timeFactor = timeFactor / timeFactorMultiplier; //TODO
+    double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * timeFactorMultiplier);
+    //timeFactor = timeFactor / timeFactorMultiplier; //TODO
     if (timeFactor > 1) timeFactor = 1;
 
     return timeFactor;
@@ -633,11 +638,16 @@ double UDPBasicRecharge::calculateRechargeStimuli(void) {
     if (sb->getState() != power::SimpleBattery::DISCHARGING){
         return 0;
     }
-    if (makeLowEnergyFactorCurves) {
-        return pow(calculateRechargeStimuliTimeFactor(), (1.0 / (1.0 - calculateRechargeStimuliEnergyFactor())));
+    if (firstRecharge) {
+        return dblrand();
     }
     else {
-        return pow(calculateRechargeStimuliTimeFactor(), calculateRechargeStimuliEnergyFactor());
+        if (makeLowEnergyFactorCurves) {
+            return pow(calculateRechargeStimuliTimeFactor(), (1.0 / (1.0 - calculateRechargeStimuliEnergyFactor())));
+        }
+        else {
+            return pow(calculateRechargeStimuliTimeFactor(), calculateRechargeStimuliEnergyFactor());
+        }
     }
 }
 
@@ -654,7 +664,7 @@ double UDPBasicRecharge::calculateRechargeStimuli(void) {
 
 double UDPBasicRecharge::calculateRechargeThreshold(void) {
     int myDegree = calculateNodeDegree();
-    int maxDegree = myDegree;
+    /*int maxDegree = myDegree;
     for (auto it = neigh.begin(); it != neigh.end(); it++) {
         nodeInfo_t *act = &(it->second);
         if (maxDegree < act->nodeDegree) {
@@ -666,7 +676,10 @@ double UDPBasicRecharge::calculateRechargeThreshold(void) {
     }
     else {
         return 0;
-    }
+    }*/
+    double ris = ((double) myDegree) / 6.0;
+    if (ris > 1) ris = 1;
+    return ris;
 }
 
 /*
