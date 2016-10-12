@@ -413,7 +413,8 @@ void UDPBasicRecharge::sendRechargeMessage(void) {
     payload->setAppAddr(myAppAddr);
     payload->setBatteryLevelAbs(sb->getBatteryLevelAbs());
     payload->setBatteryLevelPerc(sb->getBatteryLevelPerc());
-    payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
+    //payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
+    payload->setCoveragePercentage(0);
     payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
     payload->setNodeDegree(calculateNodeDegree());
     payload->setGoingToRecharge(true);
@@ -439,7 +440,8 @@ void UDPBasicRecharge::sendPacket()
         payload->setAppAddr(myAppAddr);
         payload->setBatteryLevelAbs(sb->getBatteryLevelAbs());
         payload->setBatteryLevelPerc(sb->getBatteryLevelPerc());
-        payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
+        //payload->setCoveragePercentage(getMyCoverageActual() / getMyCoverageMax());
+        payload->setCoveragePercentage(0);
         payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
         payload->setNodeDegree(calculateNodeDegree());
         payload->setGoingToRecharge(false);
