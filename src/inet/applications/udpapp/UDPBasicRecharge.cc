@@ -555,6 +555,7 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
 double UDPBasicRecharge::calculateRechargeStimuliTimeFactor(void) {
     double averageE = 0;
     double sumE = sb->getBatteryLevelAbs();
+    double maxE = sb->getBatteryLevelAbs();
 
     if (sb->getState() != power::SimpleBattery::DISCHARGING){
         return 0;
@@ -564,12 +565,15 @@ double UDPBasicRecharge::calculateRechargeStimuliTimeFactor(void) {
         nodeInfo_t *act = &(it->second);
 
         sumE += act->batteryLevelAbs;
+        if (act->batteryLevelAbs > maxE)
+            maxE = act->batteryLevelAbs;
     }
     averageE = sumE / ((double) (neigh.size() + 1));
 
     double rechargeEstimation = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
     if (neigh.size() > 0) {
-        rechargeEstimation = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+        //rechargeEstimation = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+        rechargeEstimation = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
     }
     double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * timeFactorMultiplier);
     //timeFactor = timeFactor / timeFactorMultiplier; //TODO
