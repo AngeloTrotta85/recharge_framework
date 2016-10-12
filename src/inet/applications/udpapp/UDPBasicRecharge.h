@@ -120,7 +120,7 @@ protected:
   virtual double calculateDischargeProb(void);
   virtual void checkDischarge(void);
 
-  virtual double calculateRechargeTime(void);
+  virtual double calculateRechargeTime(bool log);
 
   virtual bool checkRechargingStationFree(void);
 

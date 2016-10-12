@@ -201,7 +201,7 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         firstRecharge = false;
 
         if (checkRechargingStationFree()) {
-            double cTime = calculateRechargeTime();
+            double cTime = calculateRechargeTime(true);
 
             sb->setState(power::SimpleBattery::CHARGING);
 
@@ -712,9 +712,10 @@ double UDPBasicRecharge::calculateRechargeThreshold(void) {
 
 }*/
 
-double UDPBasicRecharge::calculateRechargeTime(void) {
+double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
     double recTime = 0;
+    std::stringstream ss;
 
     if (st == STIMULUS) {
 
@@ -722,19 +723,22 @@ double UDPBasicRecharge::calculateRechargeTime(void) {
         //double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
         double tt = numRechargeSlotsStimulusZeroNeigh * checkRechargeTimer;
 
-        EV << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
+        if (log) ss << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
 
         if (neigh.size() > 0) {
             double sumE = sb->getBatteryLevelAbs();
+            double maxE = sb->getBatteryLevelAbs();
             for (auto it = neigh.begin(); it != neigh.end(); it++) {
                 nodeInfo_t *act = &(it->second);
 
                 sumE += act->batteryLevelAbs;
+                if (act->batteryLevelAbs > maxE)
+                    maxE = act->batteryLevelAbs;
             }
 
             double averageE = sumE / (((double) neigh.size()) + 1.0);
 
-            EV << "RECHARGETIME STIMULUS: Average Energy: " << averageE
+            if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
                     << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
                     << " - Neigh size: " << neigh.size()
                     << " - checkRechargeTimer: " << checkRechargeTimer
@@ -749,7 +753,11 @@ double UDPBasicRecharge::calculateRechargeTime(void) {
         recTime = numRechargeSlotsProbabilistic * checkRechargeTimer;
     }
 
-    EV << "RECHARGETIME Final decision charge time: " << recTime << endl;
+    if (log) {
+        ss << "RECHARGETIME Final decision charge time: " << recTime << endl;
+
+        fprintf(stderr, "%s", ss.str().c_str());
+    }
 
     return recTime;
 }
