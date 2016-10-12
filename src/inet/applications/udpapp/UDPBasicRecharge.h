@@ -216,6 +216,7 @@ private:
     bool makeLowEnergyFactorCurves;
     double timeFactorMultiplier;
     bool godCheckIfRechargeStationFree;
+    bool firstRecharge;
 };
 
 } /* namespace inet */
