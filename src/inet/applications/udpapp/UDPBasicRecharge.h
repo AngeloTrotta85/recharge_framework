@@ -146,6 +146,7 @@ protected:
   void updateBatteryVals(std::list<nodeAlgo_t> *list);
 
   void printChargingInfo(void);
+  void printChargingInfo(std::ostream &ss, const char *str);
   void printChargingInfo(const char *str);
 
   void putNodeInCharging(int addr);
@@ -217,6 +218,9 @@ private:
     double timeFactorMultiplier;
     bool godCheckIfRechargeStationFree;
     bool firstRecharge;
+
+    char logFile[256];
+    bool printAnalticalLog;
 };
 
 } /* namespace inet */

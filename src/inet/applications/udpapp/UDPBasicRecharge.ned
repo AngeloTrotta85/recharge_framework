@@ -43,6 +43,9 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         bool godCheckIfRechargeStationFree = default(true);
         
+        string analticalLogFile = default("/dev/null");
+        bool printAnalticalLog = default(false);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }

@@ -70,6 +70,11 @@ void UDPBasicRecharge::initialize(int stage)
         godCheckIfRechargeStationFree = par("godCheckIfRechargeStationFree").boolValue();
         numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
 
+        //logFile = par("analticalLogFile").str();
+        printAnalticalLog = par("printAnalticalLog").boolValue();
+        snprintf(logFile, sizeof(logFile), "%s", par("analticalLogFile").stringValue());
+        remove(logFile);
+
         firstRecharge = true;
 
         std::string schedulingType = par("schedulingType").stdstringValue();
@@ -1151,7 +1156,8 @@ bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
 
     getNodeWithMaxEnergy(actGI, maxE);
 
-    int numSteps = (maxE - 1) / sb->getDischargingFactor(checkRechargeTimer);
+    //int numSteps = (maxE - 1) / sb->getDischargingFactor(checkRechargeTimer);
+    int numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
     int numChargeSlots = numSteps / (actGI->nodeList.size() - 1);
     //int plusSteps = ((int) maxE) % ((int)sb->getDischargingFactor());
     int plusSteps = numSteps - (numChargeSlots * (actGI->nodeList.size() - 1));
@@ -1198,8 +1204,22 @@ bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
     return ris;
 }
 
-void UDPBasicRecharge::printChargingInfo(const char *str) {
+void UDPBasicRecharge::printChargingInfo(std::ostream &ss, const char *str) {
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
+        groupInfo_t *actGI = &(*it);
+
+        ss << str;
+        for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
+            nodeAlgo_t *actNO = &(*itn);
+
+            ss << "[" << actNO->addr << "]" << actNO->energy << "|" << actNO->executedRecharge << "/" << actNO->assignedRecharge << "|" << actNO->isCharging << "  ";
+        }
+        ss << endl;
+    }
+}
+
+void UDPBasicRecharge::printChargingInfo(const char *str) {
+    /*for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
 
         EV << str;
@@ -1209,7 +1229,8 @@ void UDPBasicRecharge::printChargingInfo(const char *str) {
             EV << "[" << actNO->addr << "]" << actNO->energy << "|" << actNO->executedRecharge << "/" << actNO->assignedRecharge << "|" << actNO->isCharging << "  ";
         }
         EV << endl;
-    }
+    }*/
+    printChargingInfo(EV, str);
 }
 
 void UDPBasicRecharge::printChargingInfo(void) {
@@ -1242,6 +1263,20 @@ void UDPBasicRecharge::checkCentralizedRecharge(void) {
         //checkAliveGroup(actGI);
     }
     printChargingInfo();
+
+    if (printAnalticalLog) {
+        FILE *f = fopen(logFile, "a");
+        if (f) {
+            std::stringstream ss;
+            printChargingInfo(ss, "BATTERY INFO -> ");
+            fwrite(ss.str().c_str(), 1 , ss.str().length(), f);
+            fclose(f);
+        }
+        else {
+            fprintf(stderr, "Error opening file: %s \n", logFile); fflush(stderr);
+            error("Error writing on file\n");
+        }
+    }
 }
 
 void UDPBasicRecharge::checkCentralizedRechargeGroup(groupInfo_t *actGI) {
