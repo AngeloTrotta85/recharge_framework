@@ -149,6 +149,8 @@ protected:
   void printChargingInfo(std::ostream &ss, const char *str);
   void printChargingInfo(const char *str);
 
+  void printDistributedChargingInfo(std::ostream &ss, const char *str);
+
   void putNodeInCharging(int addr);
   void putNodeInDischarging(int addr);
 

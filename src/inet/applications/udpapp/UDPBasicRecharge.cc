@@ -213,6 +213,20 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
             fprintf(stderr, "[%d] - Going in charging: %f\n", myAppAddr, cTime);fflush(stderr);
 
             scheduleAt(simTime() + cTime, dischargeTimer);
+
+            if (printAnalticalLog) {
+                FILE *f = fopen(logFile, "a");
+                if (f) {
+                    std::stringstream ss;
+                    printDistributedChargingInfo(ss, "BATTERY INFO -> ");
+                    fwrite(ss.str().c_str(), 1 , ss.str().length(), f);
+                    fclose(f);
+                }
+                else {
+                    fprintf(stderr, "Error opening file: %s \n", logFile); fflush(stderr);
+                    error("Error writing on file\n");
+                }
+            }
         }
 
         //stop the node
@@ -225,6 +239,20 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         neigh.clear();
         mob->clearVirtualSpringsAndsetPosition(rebornPos);
         lastRechargeTimestamp = simTime();
+
+        if (printAnalticalLog) {
+            FILE *f = fopen(logFile, "a");
+            if (f) {
+                std::stringstream ss;
+                printDistributedChargingInfo(ss, "BATTERY INFO -> ");
+                fwrite(ss.str().c_str(), 1 , ss.str().length(), f);
+                fclose(f);
+            }
+            else {
+                fprintf(stderr, "Error opening file: %s \n", logFile); fflush(stderr);
+                error("Error writing on file\n");
+            }
+        }
     }
     else if ((msg->isSelfMessage()) && (msg == stat5sec)) {
         make5secStats();
@@ -829,6 +857,20 @@ void UDPBasicRecharge::checkDischarge(void) {
 
         lastRechargeTimestamp = simTime();
 
+        if (printAnalticalLog) {
+            FILE *f = fopen(logFile, "a");
+            if (f) {
+                std::stringstream ss;
+                printDistributedChargingInfo(ss, "BATTERY INFO -> ");
+                fwrite(ss.str().c_str(), 1 , ss.str().length(), f);
+                fclose(f);
+            }
+            else {
+                fprintf(stderr, "Error opening file: %s \n", logFile); fflush(stderr);
+                error("Error writing on file\n");
+            }
+        }
+
         if (dischargeTimer->isScheduled()) {
             cancelEvent(dischargeTimer);
         }
@@ -1204,10 +1246,32 @@ bool UDPBasicRecharge::decideRechargeScedulingGroup(groupInfo_t *actGI) {
     return ris;
 }
 
+void UDPBasicRecharge::printDistributedChargingInfo(std::ostream &ss, const char *str) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+    ss << ((int) simTime().dbl()) << " - ";
+    ss << str;
+    int nInCharge = 0;
+    ss << "{";
+    for (int i = 0; i < numberNodes; i++) {
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+        if (battN->isCharging()) {
+            nInCharge++;
+            ss << i << " ";
+        }
+    }
+    ss << "| " << nInCharge << "]}|||";
+    for (int i = 0; i < numberNodes; i++) {
+        power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", i)->getSubmodule("battery"));
+
+        ss << "[" << i << "]" << battN->getBatteryLevelAbs() << "|" << battN->isCharging() << "  ";
+    }
+    ss << endl;
+}
+
 void UDPBasicRecharge::printChargingInfo(std::ostream &ss, const char *str) {
     for (auto it = groupList.begin(); it != groupList.end(); it++) {
         groupInfo_t *actGI = &(*it);
-
+        ss << ((int) simTime().dbl()) << " - ";
         ss << str;
         for (auto itn = actGI->nodeList.begin(); itn != actGI->nodeList.end(); itn++){
             nodeAlgo_t *actNO = &(*itn);
