@@ -229,6 +229,8 @@ private:
 
     char logFile[256];
     bool printAnalticalLog;
+
+    int rechargeLostAccess;
 };
 
 } /* namespace inet */

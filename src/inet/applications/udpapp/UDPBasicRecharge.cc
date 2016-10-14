@@ -78,6 +78,7 @@ void UDPBasicRecharge::initialize(int stage)
 
         firstRecharge = true;
         lastPosBeforeCharge = rebornPos;
+        rechargeLostAccess = 0;
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -212,6 +213,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         if (checkRechargingStationFree()) {
             double cTime = calculateRechargeTime(true);
 
+            rechargeLostAccess = 0;
+
             lastPosBeforeCharge = mob->getCurrentPosition();
 
             sb->setState(power::SimpleBattery::CHARGING);
@@ -233,6 +236,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
                     error("Error writing on file\n");
                 }
             }
+        }
+        else {
+            rechargeLostAccess++;
         }
 
         //stop the node
@@ -296,7 +302,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         //    scheduleAt(simTime() + 0.5, msg);
         //}
 
-        scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
+        //scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
+        scheduleAt(simTime() + (checkRechargeTimer / (((double) rechargeLostAccess) + 1.0)) + ((dblrand() - 0.5) / 2.0), msg);
+
         //scheduleAt(simTime() + checkRechargeTimer, msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgCentralizedRecharge)) {
