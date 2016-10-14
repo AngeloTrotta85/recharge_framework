@@ -128,6 +128,8 @@ protected:
 
   virtual int calculateNodeDegree(void);
 
+  void getFilteredNeigh(std::map<int, nodeInfo_t> &filteredNeigh);
+
   virtual void checkCentralizedRecharge(void);
   virtual void checkCentralizedRechargeGroup(groupInfo_t *actGI);
   virtual void initCentralizedRecharge(void);
