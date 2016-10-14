@@ -61,6 +61,7 @@ public:
 
     double getBatteryLevelAbs(void) {updateBatteryLevel(); return batteryLevel;}
     double getBatteryLevelPerc(void) {updateBatteryLevel(); return batteryLevel/fullCapacity;}
+    double getBatteryLevelPercInitial(void) {updateBatteryLevel(); return (batteryLevel >= initialCapacity ? 1 : batteryLevel/initialCapacity);}
 
     bool isFull(void) {return (batteryLevel >= fullCapacity);}
 

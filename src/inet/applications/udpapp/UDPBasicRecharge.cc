@@ -606,7 +606,7 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
         return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
     }
     else {//if (st == PROBABILISTIC) {
-        return sb->getBatteryLevelPerc();
+        return (1 - sb->getBatteryLevelPerc());
     }
 
 }
