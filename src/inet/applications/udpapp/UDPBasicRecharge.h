@@ -200,6 +200,8 @@ private:
     std::map<int, nodeInfo_t> neigh;
     std::list<groupInfo_t> groupList;
 
+    Coord lastPosBeforeCharge;
+
     simtime_t lastRechargeTimestamp;
 
     //parameters
@@ -222,6 +224,8 @@ private:
     double timeFactorMultiplier;
     bool godCheckIfRechargeStationFree;
     bool firstRecharge;
+
+    bool returnBackAfterRecharge;
 
     char logFile[256];
     bool printAnalticalLog;

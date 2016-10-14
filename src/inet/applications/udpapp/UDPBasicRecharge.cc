@@ -69,6 +69,7 @@ void UDPBasicRecharge::initialize(int stage)
         timeFactorMultiplier = par("timeFactorMultiplier");
         godCheckIfRechargeStationFree = par("godCheckIfRechargeStationFree").boolValue();
         numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
+        returnBackAfterRecharge = par("returnBackAfterRecharge").boolValue();
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -76,6 +77,7 @@ void UDPBasicRecharge::initialize(int stage)
         remove(logFile);
 
         firstRecharge = true;
+        lastPosBeforeCharge = rebornPos;
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -110,7 +112,8 @@ void UDPBasicRecharge::initialize(int stage)
         else {
             //scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
             //scheduleAt(simTime() + (checkRechargeTimer * dblrand()), autoMsgRecharge);
-            scheduleAt(simTime() + checkRechargeTimer, autoMsgRecharge);
+            //scheduleAt(simTime() + checkRechargeTimer, autoMsgRecharge);
+            scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), autoMsgRecharge);
         }
 
         stat1sec = new cMessage("stat1secMsg");
@@ -209,6 +212,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         if (checkRechargingStationFree()) {
             double cTime = calculateRechargeTime(true);
 
+            lastPosBeforeCharge = mob->getCurrentPosition();
+
             sb->setState(power::SimpleBattery::CHARGING);
 
             fprintf(stderr, "[%d] - Going in charging: %f\n", myAppAddr, cTime);fflush(stderr);
@@ -238,7 +243,12 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
     else if ((msg->isSelfMessage()) && (msg == dischargeTimer)) {
         sb->setState(power::SimpleBattery::DISCHARGING);
         neigh.clear();
-        mob->clearVirtualSpringsAndsetPosition(rebornPos);
+        if (returnBackAfterRecharge) {
+            mob->clearVirtualSpringsAndsetPosition(lastPosBeforeCharge);
+        }
+        else {
+            mob->clearVirtualSpringsAndsetPosition(rebornPos);
+        }
         lastRechargeTimestamp = simTime();
 
         if (printAnalticalLog) {
@@ -286,8 +296,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         //    scheduleAt(simTime() + 0.5, msg);
         //}
 
-        //scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
-        scheduleAt(simTime() + checkRechargeTimer, msg);
+        scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
+        //scheduleAt(simTime() + checkRechargeTimer, msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgCentralizedRecharge)) {
         checkCentralizedRecharge();

@@ -46,6 +46,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         string analticalLogFile = default("/dev/null");
         bool printAnalticalLog = default(false);
         
+        bool returnBackAfterRecharge = default(true);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }
