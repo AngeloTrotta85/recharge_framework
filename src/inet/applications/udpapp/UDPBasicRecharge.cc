@@ -759,29 +759,51 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
         if (log) ss << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
 
         if (neigh.size() > 0) {
+
+            std::list<VirtualSpringMobility::NodeBasicInfo> nodesToFilter;
+            std::list<VirtualSpringMobility::NodeBasicInfo> nodeFiltered;
+
+            for (auto it = neigh.begin(); it != neigh.end(); it++) {
+                VirtualSpringMobility::NodeBasicInfo newinfo;
+                newinfo.id = it->first;
+                newinfo.position = it->second.pos;
+                nodesToFilter.push_back(newinfo);
+            }
+            mob->filterNodeListAcuteAngleTest(nodesToFilter, nodeFiltered);
+
             double sumE = sb->getBatteryLevelAbs();
             double maxE = sb->getBatteryLevelAbs();
             for (auto it = neigh.begin(); it != neigh.end(); it++) {
                 nodeInfo_t *act = &(it->second);
 
-                sumE += act->batteryLevelAbs;
-                if (act->batteryLevelAbs > maxE)
-                    maxE = act->batteryLevelAbs;
+                for (auto it2 = nodeFiltered.begin(); it2 != nodeFiltered.end(); it2++) {
+                    if (act->appAddr == it2->id) {
+                        sumE += act->batteryLevelAbs;
+                        if (act->batteryLevelAbs > maxE)
+                            maxE = act->batteryLevelAbs;
+
+                        break;
+                    }
+                }
             }
 
-            double averageE = sumE / (((double) neigh.size()) + 1.0);
+            //double averageE = sumE / (((double) neigh.size()) + 1.0);
+            double averageE = sumE / (((double) nodeFiltered.size()) + 1.0);
 
             if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
                     << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
+                    << " - SwapLoose Factor: " << sb->getSwapLoose()
+                    << " - NodeFiltered size: " << nodeFiltered.size()
                     << " - Neigh size: " << neigh.size()
                     << " - checkRechargeTimer: " << checkRechargeTimer
                     << endl;
 
             double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
-            int actualNeigh = neigh.size();
-            if (actualNeigh > 7) actualNeigh = 7;
+            //int actualNeigh = neigh.size();
+            //if (actualNeigh > 7) actualNeigh = 7;
             //double numChargeSlots = numSteps / ((double) neigh.size());
-            double numChargeSlots = numSteps / ((double) actualNeigh);
+            //double numChargeSlots = numSteps / ((double) actualNeigh);
+            double numChargeSlots = numSteps / ((double) nodeFiltered.size());
             tt = numChargeSlots * checkRechargeTimer;
 
             //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
