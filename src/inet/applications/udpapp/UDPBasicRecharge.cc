@@ -891,6 +891,9 @@ void UDPBasicRecharge::checkRecharge(void) {
             scheduleAt(simTime() + 0.01, goToCharge);
         }
     }
+    else {
+        rechargeLostAccess = 0;
+    }
 
 
     //if (checkRechargingStationFree() && (dblrand() < prob)) {
