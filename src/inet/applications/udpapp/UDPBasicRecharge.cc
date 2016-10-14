@@ -778,7 +778,10 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                     << endl;
 
             double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
-            double numChargeSlots = numSteps / ((double) neigh.size());
+            int actualNeigh = neigh.size();
+            if (actualNeigh > 7) actualNeigh = 7;
+            //double numChargeSlots = numSteps / ((double) neigh.size());
+            double numChargeSlots = numSteps / ((double) actualNeigh);
             tt = numChargeSlots * checkRechargeTimer;
 
             //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
