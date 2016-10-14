@@ -70,6 +70,7 @@ void UDPBasicRecharge::initialize(int stage)
         godCheckIfRechargeStationFree = par("godCheckIfRechargeStationFree").boolValue();
         numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
         returnBackAfterRecharge = par("returnBackAfterRecharge").boolValue();
+        stationANDnodeKNOWN = par("stationANDnodeKNOWN").boolValue();
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -856,7 +857,15 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             //double numChargeSlots = numSteps / ((double) neigh.size());
             //double numChargeSlots = numSteps / ((double) actualNeigh);
             //double numChargeSlots = numSteps / ((double) nodeFiltered.size());
-            double numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
+            double numChargeSlots;
+            if (stationANDnodeKNOWN) {
+                int numberNodes = this->getParentModule()->getVectorSize();
+                numChargeSlots = numSteps / (((double) numberNodes) / ((double) chargingStationNumber));
+            }
+            else {
+                numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
+            }
+            //double numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
             tt = numChargeSlots * checkRechargeTimer;
 
             //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;

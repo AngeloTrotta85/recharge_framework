@@ -48,6 +48,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         bool returnBackAfterRecharge = default(true);
         
+        bool stationANDnodeKNOWN = default(false);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }

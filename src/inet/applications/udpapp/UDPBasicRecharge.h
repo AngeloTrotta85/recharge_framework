@@ -228,6 +228,8 @@ private:
 
     bool returnBackAfterRecharge;
 
+    bool stationANDnodeKNOWN;
+
     char logFile[256];
     bool printAnalticalLog;
 
