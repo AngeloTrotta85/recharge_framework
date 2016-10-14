@@ -777,7 +777,12 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                     << " - checkRechargeTimer: " << checkRechargeTimer
                     << endl;
 
-            tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+            double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+            double numChargeSlots = numSteps / ((double) neigh.size());
+            tt = numChargeSlots * checkRechargeTimer;
+
+            //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+            //tt = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
         }
 
         recTime = tt;
@@ -1338,6 +1343,7 @@ void UDPBasicRecharge::checkCentralizedRecharge(void) {
         }
         else {
             fprintf(stderr, "Error opening file: %s \n", logFile); fflush(stderr);
+            perror("Error writing on file");
             error("Error writing on file\n");
         }
     }
