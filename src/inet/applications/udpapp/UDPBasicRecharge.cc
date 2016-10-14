@@ -113,8 +113,8 @@ void UDPBasicRecharge::initialize(int stage)
         else {
             //scheduleAt(simTime() + checkRechargeTimer + (dblrand() - 0.5), autoMsgRecharge);
             //scheduleAt(simTime() + (checkRechargeTimer * dblrand()), autoMsgRecharge);
-            //scheduleAt(simTime() + checkRechargeTimer, autoMsgRecharge);
-            scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), autoMsgRecharge);
+            scheduleAt(simTime() + checkRechargeTimer, autoMsgRecharge);
+            //scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), autoMsgRecharge);
         }
 
         stat1sec = new cMessage("stat1secMsg");
@@ -303,9 +303,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         //}
 
         //scheduleAt(simTime() + checkRechargeTimer + ((dblrand() - 0.5) / 2.0), msg);
-        scheduleAt(simTime() + (checkRechargeTimer / (((double) rechargeLostAccess) + 1.0)) + ((dblrand() - 0.5) / 2.0), msg);
+        //scheduleAt(simTime() + (checkRechargeTimer / (((double) rechargeLostAccess) + 1.0)) + ((dblrand() - 0.5) / 2.0), msg);
 
-        //scheduleAt(simTime() + checkRechargeTimer, msg);
+        scheduleAt(simTime() + checkRechargeTimer, msg);
     }
     else if ((msg->isSelfMessage()) && (msg == autoMsgCentralizedRecharge)) {
         checkCentralizedRecharge();
@@ -411,6 +411,8 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 }
                 lastRechargeTimestamp = simTime();
                 firstRecharge = false;
+
+
             }
             else {
 
@@ -876,19 +878,33 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
     return recTime;
 }
 
+double UDPBasicRecharge::calculateSendBackoff(void){
+    double cw = 1;
+    double ris = 0;
+
+    cw = cw / (((double)rechargeLostAccess) + 1.0);
+
+    ris = cw * dblrand();
+    ris += 0.01;
+
+    return ris;
+
+}
+
 void UDPBasicRecharge::checkRecharge(void) {
     double prob = calculateRechargeProb();
 
     if (dblrand() < prob) {
+        double backoff = calculateSendBackoff();
         if (godCheckIfRechargeStationFree) {
             if (checkRechargingStationFree()) {
                 sendRechargeMessage();
-                scheduleAt(simTime() + 0.01, goToCharge);
+                scheduleAt(simTime() + backoff, goToCharge);
             }
         }
         else {
             sendRechargeMessage();
-            scheduleAt(simTime() + 0.01, goToCharge);
+            scheduleAt(simTime() + backoff, goToCharge);
         }
     }
     else {

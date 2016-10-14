@@ -116,6 +116,7 @@ protected:
 
   virtual double calculateRechargeProb(void);
   virtual void checkRecharge(void);
+  double calculateSendBackoff(void);
 
   virtual double calculateDischargeProb(void);
   virtual void checkDischarge(void);
