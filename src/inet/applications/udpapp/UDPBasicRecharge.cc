@@ -609,7 +609,7 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
         return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
     }
     else {//if (st == PROBABILISTIC) {
-        return (1 - sb->getBatteryLevelPerc());
+        return (1 - sb->getBatteryLevelPercInitial());
     }
 
 }
@@ -860,7 +860,7 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             double numChargeSlots;
             if (stationANDnodeKNOWN) {
                 int numberNodes = this->getParentModule()->getVectorSize();
-                numChargeSlots = numSteps / (((double) numberNodes) / ((double) chargingStationNumber));
+                numChargeSlots = numSteps / ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0);
             }
             else {
                 numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
