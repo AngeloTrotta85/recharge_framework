@@ -354,7 +354,13 @@ void UDPBasicRecharge::make1secStats(void) {
         rechargingNodesVector.record(nnodesRecharging);
     }
     if (!isCentralized) {
-        stimulusVector.record(calculateRechargeStimuli());
+        if (st == STIMULUS) {
+            stimulusVector.record(calculateRechargeStimuli());
+        }
+        else if (st == PROBABILISTIC) {
+            stimulusVector.record(1 - sb->getBatteryLevelPercInitial());
+        }
+
         thresholdVector.record(calculateRechargeThreshold());
         responseVector.record(calculateRechargeProb());
         degreeVector.record(calculateNodeDegree());
@@ -615,10 +621,16 @@ bool UDPBasicRecharge::checkRechargingStationFree(void) {
 double UDPBasicRecharge::calculateRechargeProb(void) {
 
     if (st == STIMULUS) {
-        double stim = calculateRechargeStimuli();
-        double tetha = calculateRechargeThreshold();
 
-        return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
+        //if (rechargeLostAccess > 0) {
+        //    return 1;
+        //}
+        //else {
+            double stim = calculateRechargeStimuli();
+            double tetha = calculateRechargeThreshold();
+
+            return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
+        //}
     }
     else {//if (st == PROBABILISTIC) {
         return (1 - sb->getBatteryLevelPercInitial());
@@ -914,10 +926,11 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
 }
 
 double UDPBasicRecharge::calculateSendBackoff(void){
-    double cw = 1;
+    double cw = 3;
     double ris = 0;
 
-    cw = cw / (((double)rechargeLostAccess) + 1.0);
+    //cw = cw / (((double)rechargeLostAccess) + 1.0);
+    cw = cw / pow(2.0, ((double) rechargeLostAccess));
 
     ris = cw * dblrand();
     ris += 0.01;
@@ -942,9 +955,9 @@ void UDPBasicRecharge::checkRecharge(void) {
             scheduleAt(simTime() + backoff, goToCharge);
         }
     }
-    else {
-        rechargeLostAccess = 0;
-    }
+    //else {
+    //    rechargeLostAccess = 0;
+    //}
 
 
     //if (checkRechargingStationFree() && (dblrand() < prob)) {
