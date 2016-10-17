@@ -36,4 +36,5 @@ packet ApplicationPacketRecharge {
     double leftLifetime;  
     int nodeDegree;
     bool goingToRecharge;
+    double goingToRechargeTime;
 }

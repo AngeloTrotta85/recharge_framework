@@ -50,6 +50,10 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         bool stationANDnodeKNOWN = default(false);
         
+        bool reinforcementRechargeTime = default(false);
+        double reinforcementRechargeAlpha = default(0.2);
+        double reinforcementRechargeAlphaFinal = default(0.5);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }

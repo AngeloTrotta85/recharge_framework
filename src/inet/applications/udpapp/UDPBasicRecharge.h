@@ -121,6 +121,7 @@ protected:
   virtual double calculateDischargeProb(void);
   virtual void checkDischarge(void);
 
+  virtual double reinforceTimeVal(double val);
   virtual double calculateRechargeTime(bool log);
 
   virtual bool checkRechargingStationFree(void);
@@ -205,6 +206,8 @@ private:
 
     simtime_t lastRechargeTimestamp;
 
+    double reinforcementVal;
+
     //parameters
     double checkRechargeTimer;
     double sensorRadious;
@@ -234,6 +237,10 @@ private:
     bool printAnalticalLog;
 
     int rechargeLostAccess;
+
+    bool reinforcementRechargeTime;
+    double reinforcementRechargeAlpha;
+    double reinforcementRechargeAlphaFinal;
 };
 
 } /* namespace inet */

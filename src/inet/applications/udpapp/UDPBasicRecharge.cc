@@ -71,6 +71,9 @@ void UDPBasicRecharge::initialize(int stage)
         numRechargeSlotsStimulusZeroNeigh = par("numRechargeSlotsStimulusZeroNeigh");
         returnBackAfterRecharge = par("returnBackAfterRecharge").boolValue();
         stationANDnodeKNOWN = par("stationANDnodeKNOWN").boolValue();
+        reinforcementRechargeTime = par("reinforcementRechargeTime").boolValue();
+        reinforcementRechargeAlpha = par("reinforcementRechargeAlpha");
+        reinforcementRechargeAlphaFinal = par("reinforcementRechargeAlphaFinal");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -80,6 +83,7 @@ void UDPBasicRecharge::initialize(int stage)
         firstRecharge = true;
         lastPosBeforeCharge = rebornPos;
         rechargeLostAccess = 0;
+        reinforcementVal = -1;
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -413,7 +417,13 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 lastRechargeTimestamp = simTime();
                 firstRecharge = false;
 
-
+                if (reinforcementVal >= 0) {
+                    reinforcementVal = (reinforcementRechargeAlpha * aPkt->getGoingToRechargeTime()) +
+                            ((1.0 - reinforcementRechargeAlpha) * reinforcementVal);
+                }
+                else {
+                    reinforcementVal = aPkt->getGoingToRechargeTime();
+                }
             }
             else {
 
@@ -474,6 +484,7 @@ void UDPBasicRecharge::sendRechargeMessage(void) {
     payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
     payload->setNodeDegree(calculateNodeDegree());
     payload->setGoingToRecharge(true);
+    payload->setGoingToRechargeTime(calculateRechargeTime(false));
 
     L3Address destAddr = chooseDestAddr();
     emit(sentPkSignal, payload);
@@ -501,6 +512,7 @@ void UDPBasicRecharge::sendPacket()
         payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
         payload->setNodeDegree(calculateNodeDegree());
         payload->setGoingToRecharge(false);
+        payload->setGoingToRechargeTime(0);
 
         L3Address destAddr = chooseDestAddr();
         emit(sentPkSignal, payload);
@@ -807,6 +819,16 @@ void UDPBasicRecharge::getFilteredNeigh(std::map<int, nodeInfo_t> &filteredNeigh
     }
 }
 
+double UDPBasicRecharge::reinforceTimeVal(double val) {
+    double ris = val;
+
+    if (reinforcementVal > 0) {
+        ris = (reinforcementRechargeAlphaFinal * val) + ((1.0 - reinforcementRechargeAlphaFinal) * reinforcementVal);
+    }
+
+    return ris;
+}
+
 double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
     double recTime = 0;
@@ -870,6 +892,10 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
             //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
             //tt = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+
+            if (reinforcementRechargeTime) {
+                tt = reinforceTimeVal(tt);
+            }
         }
 
         recTime = tt;
