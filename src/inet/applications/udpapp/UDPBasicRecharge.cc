@@ -84,6 +84,7 @@ void UDPBasicRecharge::initialize(int stage)
         lastPosBeforeCharge = rebornPos;
         rechargeLostAccess = 0;
         reinforcementVal = -1;
+        inRechargingTime = 0;
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -420,7 +421,9 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 if (neigh.count(aPkt->getAppAddr()) != 0) {
                     neigh.erase(aPkt->getAppAddr());
                 }
-                lastRechargeTimestamp = simTime();
+                lastRechargeTimestamp += calculateRechargeTime(false) / ((double) chargingStationNumber);
+                if (lastRechargeTimestamp > simTime())
+                    lastRechargeTimestamp = simTime();
                 firstRecharge = false;
 
                 if (reinforcementVal >= 0) {
@@ -669,6 +672,8 @@ double UDPBasicRecharge::calculateRechargeStimuliTimeFactor(void) {
         rechargeEstimation = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) filteredNeigh.size()))) * checkRechargeTimer;
     }
 
+    rechargeEstimation = calculateRechargeTime(false);
+
     //double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * timeFactorMultiplier);
     double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * ((double) filteredNeigh.size()));
     //timeFactor = timeFactor / timeFactorMultiplier; //TODO
@@ -882,6 +887,8 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                     << " - SwapLoose Factor: " << sb->getSwapLoose()
                     << " - NodeFiltered size: " << filteredNeigh.size()
                     << " - Neigh size: " << neigh.size()
+                    //<< " - stationANDnodeKNOWN: " << stationANDnodeKNOWN
+                    //<< " - reinforcementRechargeTime: " << reinforcementRechargeTime
                     << " - checkRechargeTimer: " << checkRechargeTimer
                     << endl;
 

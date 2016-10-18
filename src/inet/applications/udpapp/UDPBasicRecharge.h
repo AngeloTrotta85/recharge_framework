@@ -208,6 +208,8 @@ private:
 
     double reinforcementVal;
 
+    double inRechargingTime;
+
     //parameters
     double checkRechargeTimer;
     double sensorRadious;
