@@ -65,6 +65,8 @@ public:
 
     bool isFull(void) {return (batteryLevel >= fullCapacity);}
 
+    void setDoubleSwapPenality(void);
+
     void setState(batteryState bs);
     batteryState getState(void) const {return bState;}
 

@@ -60,6 +60,30 @@ public:
         return os;
     }
 
+    typedef enum {
+        MIN_VAL,
+        MAX_VAL,
+        AVG_VAL
+    } RechargeLength_Type;
+
+    friend std::ostream& operator<<( std::ostream& os, const RechargeLength_Type rrtt )
+    {
+        if (rrtt == MIN_VAL) {
+            os << "MINIMUM ALGO";
+        }
+        else if (rrtt == MAX_VAL) {
+            os << "MAXIMUM ALGO";
+        }
+        else if (rrtt == AVG_VAL) {
+            os << "AVERAGE ALGO";
+        }
+        else {
+            os << "UNDEFINED ALGO";
+        }
+
+        return os;
+    }
+
     typedef struct {
         L3Address addr;
         int appAddr;
@@ -74,6 +98,7 @@ public:
         double coveragePercentage;
         double leftLifetime;
         int nodeDegree;
+        double inRechargeT;
     } nodeInfo_t;
 
     typedef struct {
@@ -121,6 +146,7 @@ protected:
   virtual double calculateDischargeProb(void);
   virtual void checkDischarge(void);
 
+  virtual double calculateChargeDiff (double myChoice);
   virtual double reinforceTimeVal(double val);
   virtual double calculateRechargeTime(bool log);
 
@@ -217,6 +243,7 @@ private:
 
     bool isCentralized;
     Scheduling_Type st;
+    RechargeLength_Type rlt;
     int chargingStationNumber;
     int numRechargeSlotsStimulusZeroNeigh;
 
@@ -243,6 +270,8 @@ private:
     bool reinforcementRechargeTime;
     double reinforcementRechargeAlpha;
     double reinforcementRechargeAlphaFinal;
+
+    double chargeTimeOthersNodeFactor;
 };
 
 } /* namespace inet */

@@ -65,6 +65,14 @@ double SimpleBattery::getSwapLoose(void) {
     return (flightHeight * swapHeightFactor);
 }
 
+void SimpleBattery::setDoubleSwapPenality(void) {
+    batteryLevel -= getSwapLoose() * 2.0;
+
+    if(batteryLevel < 0) {
+        batteryLevel = 0;
+    }
+}
+
 void SimpleBattery::setState(batteryState bs) {
     batteryState old_bs = bState;
 

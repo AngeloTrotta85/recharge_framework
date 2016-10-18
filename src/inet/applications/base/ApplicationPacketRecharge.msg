@@ -37,4 +37,5 @@ packet ApplicationPacketRecharge {
     int nodeDegree;
     bool goingToRecharge;
     double goingToRechargeTime;
+    double inRecharge;
 }

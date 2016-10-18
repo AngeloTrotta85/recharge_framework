@@ -74,6 +74,7 @@ void UDPBasicRecharge::initialize(int stage)
         reinforcementRechargeTime = par("reinforcementRechargeTime").boolValue();
         reinforcementRechargeAlpha = par("reinforcementRechargeAlpha");
         reinforcementRechargeAlphaFinal = par("reinforcementRechargeAlphaFinal");
+        chargeTimeOthersNodeFactor = par("chargeTimeOthersNodeFactor");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -102,6 +103,20 @@ void UDPBasicRecharge::initialize(int stage)
         }
         else {
             error("Wrong \"schedulingType\" parameter");
+        }
+
+        std::string chargeLengthType = par("chargeLengthType").stdstringValue();
+        if (chargeLengthType.compare("MIN") == 0) {
+            rlt = MIN_VAL;
+        }
+        else if (chargeLengthType.compare("MAX") == 0) {
+            rlt = MAX_VAL;
+        }
+        else if (chargeLengthType.compare("AVG") == 0) {
+            rlt = AVG_VAL;
+        }
+        else {
+            error("Wrong \"chargeLengthType\" parameter");
         }
 
         isCentralized = false;
@@ -221,6 +236,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 
             rechargeLostAccess = 0;
 
+            inRechargingTime += cTime;
+
             lastPosBeforeCharge = mob->getCurrentPosition();
 
             sb->setState(power::SimpleBattery::CHARGING);
@@ -245,6 +262,7 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         }
         else {
             rechargeLostAccess++;
+            sb->setDoubleSwapPenality();
         }
 
         //stop the node
@@ -421,9 +439,11 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 if (neigh.count(aPkt->getAppAddr()) != 0) {
                     neigh.erase(aPkt->getAppAddr());
                 }
-                lastRechargeTimestamp += calculateRechargeTime(false) / ((double) chargingStationNumber);
-                if (lastRechargeTimestamp > simTime())
-                    lastRechargeTimestamp = simTime();
+
+                //lastRechargeTimestamp += calculateRechargeTime(false) / ((double) chargingStationNumber);
+                //if (lastRechargeTimestamp > simTime())
+                //    lastRechargeTimestamp = simTime();
+
                 firstRecharge = false;
 
                 if (reinforcementVal >= 0) {
@@ -456,6 +476,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 node->coveragePercentage = aPkt->getCoveragePercentage();
                 node->leftLifetime = aPkt->getLeftLifetime();
                 node->nodeDegree = aPkt->getNodeDegree();
+                node->inRechargeT = aPkt->getInRecharge();
             }
 
             updateVirtualForces();
@@ -492,6 +513,7 @@ void UDPBasicRecharge::sendRechargeMessage(void) {
     payload->setCoveragePercentage(0);
     payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
     payload->setNodeDegree(calculateNodeDegree());
+    payload->setInRecharge(inRechargingTime);
     payload->setGoingToRecharge(true);
     payload->setGoingToRechargeTime(calculateRechargeTime(false));
 
@@ -520,6 +542,7 @@ void UDPBasicRecharge::sendPacket()
         payload->setCoveragePercentage(0);
         payload->setLeftLifetime(sb->getBatteryLevelAbs() / sb->getDischargingFactor(checkRechargeTimer));
         payload->setNodeDegree(calculateNodeDegree());
+        payload->setInRecharge(inRechargingTime);
         payload->setGoingToRecharge(false);
         payload->setGoingToRechargeTime(0);
 
@@ -675,8 +698,14 @@ double UDPBasicRecharge::calculateRechargeStimuliTimeFactor(void) {
     rechargeEstimation = calculateRechargeTime(false);
 
     //double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * timeFactorMultiplier);
-    double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * ((double) filteredNeigh.size()));
+    //double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * ((double) filteredNeigh.size()));
     //timeFactor = timeFactor / timeFactorMultiplier; //TODO
+
+    double timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * ((double) filteredNeigh.size()));
+    if (stationANDnodeKNOWN) {
+        int numberNodes = this->getParentModule()->getVectorSize();
+        timeFactor = (simTime() - lastRechargeTimestamp).dbl() / (rechargeEstimation * (((double) numberNodes) / ((double) chargingStationNumber)));
+    }
     if (timeFactor > 1) timeFactor = 1;
 
     return timeFactor;
@@ -846,6 +875,30 @@ double UDPBasicRecharge::reinforceTimeVal(double val) {
     return ris;
 }
 
+double UDPBasicRecharge::calculateChargeDiff (double myChoice) {
+    double ris = myChoice;
+
+    if (neigh.size() > 0) {
+        std::map<int, nodeInfo_t> filteredNeigh;
+        getFilteredNeigh(filteredNeigh);
+
+        double maxC = -1;
+        for (auto it = filteredNeigh.begin(); it != filteredNeigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+
+            if (act->inRechargeT > maxC) {
+                maxC = act->inRechargeT;
+            }
+        }
+
+        if ((maxC > 0) && (maxC > (inRechargingTime + myChoice))) {
+            ris = maxC - inRechargingTime;
+        }
+    }
+
+    return ris;
+}
+
 double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
     double recTime = 0;
@@ -866,6 +919,7 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
             double sumE = sb->getBatteryLevelAbs();
             double maxE = sb->getBatteryLevelAbs();
+            double minE = sb->getBatteryLevelAbs();
             for (auto it = filteredNeigh.begin(); it != filteredNeigh.end(); it++) {
             //for (auto it = neigh.begin(); it != neigh.end(); it++) {
                 nodeInfo_t *act = &(it->second);
@@ -873,13 +927,15 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                 sumE += act->batteryLevelAbs;
                 if (act->batteryLevelAbs > maxE)
                     maxE = act->batteryLevelAbs;
+                if (act->batteryLevelAbs < minE)
+                    minE = act->batteryLevelAbs;
 
                 break;
             }
 
             //double averageE = sumE / (((double) neigh.size()) + 1.0);
             //double averageE = sumE / (((double) nodeFiltered.size()) + 1.0);
-            //double averageE = sumE / (((double) filteredNeigh.size()) + 1.0);
+            double averageE = sumE / (((double) filteredNeigh.size()) + 1.0);
 
             if (log) ss << "RECHARGETIME STIMULUS: Max Energy: " << maxE
             //if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
@@ -892,7 +948,26 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                     << " - checkRechargeTimer: " << checkRechargeTimer
                     << endl;
 
-            double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+            //double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+            double valToUse = 1;
+            switch (rlt) {
+            case MIN_VAL:
+                valToUse = minE;
+                break;
+
+            case MAX_VAL:
+                valToUse = maxE;
+                break;
+
+            case AVG_VAL:
+                valToUse = averageE;
+                break;
+
+            default:
+                error("Wring rlt value");
+                break;
+            }
+            double numSteps = (valToUse - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
             //int actualNeigh = neigh.size();
             //if (actualNeigh > 7) actualNeigh = 7;
             //double numChargeSlots = numSteps / ((double) neigh.size());
@@ -914,6 +989,13 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
             if (reinforcementRechargeTime) {
                 tt = reinforceTimeVal(tt);
+            }
+
+            if (chargeTimeOthersNodeFactor > 0) {
+                double diffOthers = calculateChargeDiff(tt);
+                if (diffOthers > 0) {
+                    tt = (chargeTimeOthersNodeFactor * diffOthers) + ((1.0 - chargeTimeOthersNodeFactor) * tt);
+                }
             }
         }
 
