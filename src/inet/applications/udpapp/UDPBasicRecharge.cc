@@ -75,6 +75,7 @@ void UDPBasicRecharge::initialize(int stage)
         reinforcementRechargeAlpha = par("reinforcementRechargeAlpha");
         reinforcementRechargeAlphaFinal = par("reinforcementRechargeAlphaFinal");
         chargeTimeOthersNodeFactor = par("chargeTimeOthersNodeFactor");
+        makeCoverageLog = par("makeCoverageLog").boolValue();
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -342,7 +343,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 
 void UDPBasicRecharge::make5secStats(void) {
     if (myAppAddr == 0) {
-        //totalCoverageVector.record(getFullCoverage());
+        if (makeCoverageLog){
+            totalCoverageVector.record(getFullCoverage());
+        }
     }
 }
 

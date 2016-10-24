@@ -272,6 +272,8 @@ private:
     double reinforcementRechargeAlphaFinal;
 
     double chargeTimeOthersNodeFactor;
+
+    bool makeCoverageLog;
 };
 
 } /* namespace inet */

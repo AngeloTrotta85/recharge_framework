@@ -57,6 +57,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         double chargeTimeOthersNodeFactor = default(0.0);
         
+        bool makeCoverageLog = default(false);
+        
         @display("i=block/app");
         @class(UDPBasicRecharge);
 }
