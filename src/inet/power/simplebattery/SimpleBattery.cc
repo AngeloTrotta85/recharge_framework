@@ -37,6 +37,7 @@ void SimpleBattery::initialize(int stage) {
         bState = UNDEFINED_STATE;
 
         sumSwap = 0;
+        sumPenalities = 0;
 
         autoMsg = new cMessage("batteryLevelUpdate");
         scheduleAt(simTime() + updateInterval, autoMsg);
@@ -59,6 +60,7 @@ void SimpleBattery::handleMessage(cMessage *msg) {
 
 void SimpleBattery::finish(void) {
     recordScalar("BATTERYSWAP", sumSwap);
+    recordScalar("BATTERYPENALITIES", sumPenalities);
 }
 
 double SimpleBattery::getSwapLoose(void) {
@@ -67,6 +69,8 @@ double SimpleBattery::getSwapLoose(void) {
 
 void SimpleBattery::setDoubleSwapPenality(void) {
     batteryLevel -= getSwapLoose() * 2.0;
+
+    sumPenalities++;
 
     if(batteryLevel < 0) {
         batteryLevel = 0;

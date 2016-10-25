@@ -102,6 +102,7 @@ private:
     simtime_t lastBatteryCheck;
 
     int sumSwap;
+    int sumPenalities;
 
     //parameters
     double batteryLevel;
