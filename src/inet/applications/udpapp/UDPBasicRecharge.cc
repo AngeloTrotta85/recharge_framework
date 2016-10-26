@@ -923,6 +923,7 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             double sumE = sb->getBatteryLevelAbs();
             double maxE = sb->getBatteryLevelAbs();
             double minE = sb->getBatteryLevelAbs();
+            if (log) ss << "RECHARGETIME STIMULUS: my battery: " << sb->getBatteryLevelAbs() << endl;
             for (auto it = filteredNeigh.begin(); it != filteredNeigh.end(); it++) {
             //for (auto it = neigh.begin(); it != neigh.end(); it++) {
                 nodeInfo_t *act = &(it->second);
@@ -933,6 +934,9 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                 if (act->batteryLevelAbs < minE)
                     minE = act->batteryLevelAbs;
 
+                if (log) ss << "RECHARGETIME STIMULUS: others battery: " << act->batteryLevelAbs << endl;
+
+                //TODO remove
                 break;
             }
 
@@ -940,7 +944,7 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             //double averageE = sumE / (((double) nodeFiltered.size()) + 1.0);
             double averageE = sumE / (((double) filteredNeigh.size()) + 1.0);
 
-            if (log) ss << "RECHARGETIME STIMULUS: Max Energy: " << maxE
+            if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
             //if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
                     << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
                     << " - SwapLoose Factor: " << sb->getSwapLoose()
@@ -980,6 +984,13 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             if (stationANDnodeKNOWN) {
                 int numberNodes = this->getParentModule()->getVectorSize();
                 numChargeSlots = numSteps / ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0);
+
+                if (log) ss << "RECHARGETIME STIMULUS: numSteps: " << numSteps <<
+                        ", numberNodes: " << numberNodes <<
+                        ", chargingStationNumber: " << chargingStationNumber <<
+                        ", n-1: " << ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0) <<
+                        ", numChargeSlots: " << numChargeSlots <<
+                        endl;
             }
             else {
                 numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
@@ -997,7 +1008,11 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
             if (chargeTimeOthersNodeFactor > 0) {
                 double diffOthers = calculateChargeDiff(tt);
                 if (diffOthers > 0) {
+                    if (log) ss << "RECHARGETIME STIMULUS: my tt: " << tt << endl;
                     tt = (chargeTimeOthersNodeFactor * diffOthers) + ((1.0 - chargeTimeOthersNodeFactor) * tt);
+                    if (log) ss << "RECHARGETIME STIMULUS: diffOthers: " << diffOthers
+                            << " chargeTimeOthersNodeFactor: " << chargeTimeOthersNodeFactor
+                            << endl;
                 }
             }
         }
