@@ -902,6 +902,17 @@ double UDPBasicRecharge::calculateChargeDiff (double myChoice) {
     return ris;
 }
 
+double UDPBasicRecharge::calculateSwapPenalitiesEstimationCount(double estimatedSteps) {
+    double ris = 0;
+    int nSteps = estimatedSteps * ((((double) this->getParentModule()->getVectorSize()) / ((double) chargingStationNumber)) - 1.0);
+
+    for (int i = 1; i <= nSteps; i++) {
+        ris += ((double) i) / ((double) nSteps);
+    }
+
+    return ris;
+}
+
 double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
     double recTime = 0;
@@ -974,7 +985,14 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
                 error("Wring rlt value");
                 break;
             }
-            double numSteps = (valToUse - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+            double tmpnumSteps = (valToUse - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+            double swapPenalitiesEstimation = calculateSwapPenalitiesEstimationCount(tmpnumSteps/checkRechargeTimer) * (2.0 * sb->getSwapLoose());
+            double numSteps = (valToUse - (2.0 * sb->getSwapLoose()) - swapPenalitiesEstimation) / sb->getDischargingFactor(checkRechargeTimer);
+
+            if (log) ss << "RECHARGETIME STIMULUS: swapPenalitiesEstimation: " << swapPenalitiesEstimation <<
+                    ", tmpnumSteps: " << tmpnumSteps <<
+                    ", numSteps: " << numSteps << endl;
+
             //int actualNeigh = neigh.size();
             //if (actualNeigh > 7) actualNeigh = 7;
             //double numChargeSlots = numSteps / ((double) neigh.size());

@@ -146,6 +146,7 @@ protected:
   virtual double calculateDischargeProb(void);
   virtual void checkDischarge(void);
 
+  virtual double calculateSwapPenalitiesEstimationCount(double estimatedSteps);
   virtual double calculateChargeDiff (double myChoice);
   virtual double reinforceTimeVal(double val);
   virtual double calculateRechargeTime(bool log);
