@@ -212,6 +212,8 @@ public:
     double getBeta(void);
     double getP(void);
 
+    double getEavg(void);
+
     //bool compare_energy (const nodeAlgo_t& first, const nodeAlgo_t& second);
 
 private:

@@ -675,7 +675,8 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
         double ris = 0;
         int numberNodes = this->getParentModule()->getVectorSize();
         double s, c, t;
-        double produttoria, nmeno1SquareRoot, unomenoCi;
+        double nmeno1SquareRoot, unomenoCi;
+        long double produttoria;
 
         //if (rechargeLostAccess > 0) {
         //    return 1;
@@ -703,21 +704,30 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
 
                 for (int j = 0; j < numberNodes; j++) {
                     UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                    double hostC = hostj->getGameTheoryC();
+                    long double ppp = 1.0 - hostC;
+                    produttoria = produttoria * ppp;
 
-                    //fprintf(stderr, "DEVSTIM: produttoria *= : %lf\n", (1.0 - hostj->getGameTheoryC())); fflush(stderr);
-                    produttoria *= (1.0 - hostj->getGameTheoryC());
+                    //fprintf(stderr, "DEVSTIM: produttoriaTMP: %Lf; ppp: %Lf\n", produttoria, ppp); fflush(stderr);
                 }
-                nmeno1SquareRoot = pow(produttoria, 1.0 / (((double) numberNodes) - 1.0));
+                nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
                 unomenoCi = 1.0 - getGameTheoryC();
 
-                s = nmeno1SquareRoot / unomenoCi;
+                if (unomenoCi > 0){
+                    s = nmeno1SquareRoot / unomenoCi;
+                    if (s > 1) s = 1;
+                    if (s < 0) s = 0;
+                }
+                else {
+                    s = 1.0;
+                }
 
                 ris = 1.0 - s;
 
-                //fprintf(stderr, "DEVSTIM: produttoria: %lf; nmeno1S: %lf; unomenoCi: %lf; s: %lf\n",
-                //        produttoria, nmeno1SquareRoot, unomenoCi, s); fflush(stderr);
+                fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
+                        produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n", ris); fflush(stderr);
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n\n", ris); fflush(stderr);
 
 
                 break;
@@ -1244,6 +1254,7 @@ double UDPBasicRecharge::calculateDischargeProb(void) {
         return 1;
     }
     else {
+
         return 0;
     }
 }
@@ -2032,15 +2043,34 @@ double UDPBasicRecharge::getMyCoverageActual(void) {
 }
 
 double UDPBasicRecharge::getGameTheoryC(void) {
-    double d = 0;
+    double ris = 0;
 
-    d = (getTheta() + getGamma()) / (getAlpha() + getBeta());
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        double eavg = getEavg();
+        //double e = pow (eavg / sb->getBatteryLevelAbs(), 2.0);
+        double e = exp (1.0 - (sb->getBatteryLevelAbs() / eavg) );
+        double a = getAlpha();
+        double b = getBeta();
+        double t = getTheta();
+        double g = getGamma();
 
-    //fprintf(stderr, "DEVSTIM: theta: %lf; gamma: %lf; alpha: %lf; beta: %lf\n", getTheta(), getGamma(), getAlpha(), getBeta()); fflush(stderr);
+        ris = ((a / e) + b - t - g) / (a + b);
 
-    if (d > 1) d = 1;
-    if (d < 0) d = 0;
-    return (1.0 - d);
+        //fprintf(stderr, "DEVSTIM: myE: %lf; avgE: %lf; ratio: %lf\n", sb->getBatteryLevelAbs(), eavg, eavg / sb->getBatteryLevelAbs()); fflush(stderr);
+        //fprintf(stderr, "DEVSTIM: getGameTheoryC - e^2: %lf theta: %lf; gamma: %lf; alpha: %lf; beta: %lf; ris: %lf\n", e, t, g, a, b, ris); fflush(stderr);
+    }
+    else {
+        double d = (getTheta() + getGamma()) / (getAlpha() + getBeta());
+
+        //fprintf(stderr, "DEVSTIM: theta: %lf; gamma: %lf; alpha: %lf; beta: %lf\n", getTheta(), getGamma(), getAlpha(), getBeta()); fflush(stderr);
+
+        ris = 1.0 - d;
+    }
+
+    if (ris > 1) ris = 1;
+    if (ris < 0) ris = 0;
+
+    return ris;
 }
 
 double UDPBasicRecharge::getTheta(void) {
@@ -2108,5 +2138,16 @@ double UDPBasicRecharge::getP(void) {
     return ris;
 }
 
+double UDPBasicRecharge::getEavg(void) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+    double sum = 0;
+    for (int j = 0; j < numberNodes; j++) {
+        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+        sum += hostjsb->getBatteryLevelAbs();
+    }
+
+    return (sum / ((double) numberNodes));
+}
 
 } /* namespace inet */

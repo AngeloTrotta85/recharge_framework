@@ -12,11 +12,11 @@
       </items>
     </datasets>
     <datasets name="battery">
-      <items xsi:type="scave:Add" filterPattern="EnergyVal AND attr:DS(true) AND run(TestAll_DEVELOPSTIM-0-*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="EnergyVal AND attr:DS(VAR_C_P1) AND run(TestAll_DEVELOPSTIM-13-20161216-17:38:05-26610)  " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="battery" lineNameFormat=""/>
     </datasets>
     <datasets name="rechargestation">
-      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND attr:DS(true)  AND run(TestAll_DEVELOPSTIM-0-*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND attr:DS(VAR_C_P1) AND run(TestAll_DEVELOPSTIM-12-20161216-17:38:05-26609)  " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="recharging" lineNameFormat=""/>
     </datasets>
   </datasets>
