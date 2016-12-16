@@ -126,16 +126,16 @@ void UDPBasicRecharge::initialize(int stage)
 
         std::string stimType = par("stimulusType").stdstringValue();
         //"CONST_C", "VAR_C_P0", "VAR_C_VAR_P"
-        if (schedulingType.compare("STIM_OLD") == 0) {
+        if (stimType.compare("STIM_OLD") == 0) {
             stim_type = STIM_OLD;
         }
-        else if (schedulingType.compare("CONST_C") == 0) {
+        else if (stimType.compare("CONST_C") == 0) {
             stim_type = CONST_C;
         }
-        else if (schedulingType.compare("VAR_C_P1") == 0) {
+        else if (stimType.compare("VAR_C_P1") == 0) {
             stim_type = VAR_C_P1;
         }
-        else if (schedulingType.compare("VAR_C_VAR_P") == 0) {
+        else if (stimType.compare("VAR_C_VAR_P") == 0) {
             stim_type = VAR_C_VAR_P;
         }
         else {
@@ -693,9 +693,9 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 c = (2.0 * sb->getSwapLoose()) / (sb->getDischargingFactor(checkRechargeTimer) + (sb->getChargingFactor(checkRechargeTimer)));
                 s = pow(c, 1.0 / (((double) numberNodes) - 1.0));
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, (1.0 - s)); fflush(stderr);
-
                 ris = 1.0 - s;
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, ris); fflush(stderr);
 
                 break;
             case VAR_C_P1:
@@ -704,6 +704,7 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 for (int j = 0; j < numberNodes; j++) {
                     UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
 
+                    //fprintf(stderr, "DEVSTIM: produttoria *= : %lf\n", (1.0 - hostj->getGameTheoryC())); fflush(stderr);
                     produttoria *= (1.0 - hostj->getGameTheoryC());
                 }
                 nmeno1SquareRoot = pow(produttoria, 1.0 / (((double) numberNodes) - 1.0));
@@ -711,9 +712,13 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
 
                 s = nmeno1SquareRoot / unomenoCi;
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n", (1.0 - s)); fflush(stderr);
-
                 ris = 1.0 - s;
+
+                //fprintf(stderr, "DEVSTIM: produttoria: %lf; nmeno1S: %lf; unomenoCi: %lf; s: %lf\n",
+                //        produttoria, nmeno1SquareRoot, unomenoCi, s); fflush(stderr);
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n", ris); fflush(stderr);
+
 
                 break;
             case VAR_C_VAR_P:
@@ -2031,6 +2036,8 @@ double UDPBasicRecharge::getGameTheoryC(void) {
 
     d = (getTheta() + getGamma()) / (getAlpha() + getBeta());
 
+    //fprintf(stderr, "DEVSTIM: theta: %lf; gamma: %lf; alpha: %lf; beta: %lf\n", getTheta(), getGamma(), getAlpha(), getBeta()); fflush(stderr);
+
     if (d > 1) d = 1;
     if (d < 0) d = 0;
     return (1.0 - d);
@@ -2066,7 +2073,7 @@ double UDPBasicRecharge::getAlpha(void) {
     double ris = 0;
 
     if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
-        ris = sb->getSwapLoose();
+        ris = sb->getDischargingFactor(checkRechargeTimer);
     }
     else {
         ris = sb->getDischargingFactor(checkRechargeTimer);
@@ -2079,7 +2086,7 @@ double UDPBasicRecharge::getBeta(void) {
     double ris = 0;
 
     if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
-        ris = sb->getSwapLoose();
+        ris = sb->getChargingFactor(checkRechargeTimer);
     }
     else {
         ris = sb->getChargingFactor(checkRechargeTimer);

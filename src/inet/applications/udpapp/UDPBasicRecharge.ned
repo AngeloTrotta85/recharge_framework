@@ -57,7 +57,7 @@ simple UDPBasicRecharge extends UDPBasicApp
         
         double chargeTimeOthersNodeFactor = default(0.0);
         
-        string stimulusType @enum("STIM_OLD", "CONST_C", "VAR_C_P0", "VAR_C_VAR_P") = default("STIM_OLD");
+        string stimulusType @enum("STIM_OLD", "CONST_C", "VAR_C_P1", "VAR_C_VAR_P") = default("STIM_OLD");
         
         bool makeCoverageLog = default(false);
         //bool developingStimuli = default(false);
