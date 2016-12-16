@@ -42,6 +42,13 @@ public:
         PROBABILISTIC
     } Scheduling_Type;
 
+    typedef enum {
+        STIM_OLD,
+        CONST_C,
+        VAR_C_P1,
+        VAR_C_VAR_P
+    } Stimulus_Type;
+
     friend std::ostream& operator<<( std::ostream& os, const Scheduling_Type sstt )
     {
         if (sstt == ANALYTICAL) {
@@ -197,6 +204,13 @@ public:
     UDPBasicRecharge() {}
     virtual ~UDPBasicRecharge();
 
+    double getGameTheoryC(void);
+
+    double getTheta(void);
+    double getGamma(void);
+    double getAlpha(void);
+    double getBeta(void);
+    double getP(void);
 
     //bool compare_energy (const nodeAlgo_t& first, const nodeAlgo_t& second);
 
@@ -275,6 +289,10 @@ private:
     double chargeTimeOthersNodeFactor;
 
     bool makeCoverageLog;
+
+    //bool developingStimuli;
+    double constantTheta;
+    Stimulus_Type stim_type;
 };
 
 } /* namespace inet */

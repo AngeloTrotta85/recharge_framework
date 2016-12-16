@@ -76,6 +76,8 @@ void UDPBasicRecharge::initialize(int stage)
         reinforcementRechargeAlphaFinal = par("reinforcementRechargeAlphaFinal");
         chargeTimeOthersNodeFactor = par("chargeTimeOthersNodeFactor");
         makeCoverageLog = par("makeCoverageLog").boolValue();
+        //developingStimuli = par("developingStimuli").boolValue();
+        constantTheta = par("constantTheta");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -118,6 +120,26 @@ void UDPBasicRecharge::initialize(int stage)
         }
         else {
             error("Wrong \"chargeLengthType\" parameter");
+        }
+
+
+
+        std::string stimType = par("stimulusType").stdstringValue();
+        //"CONST_C", "VAR_C_P0", "VAR_C_VAR_P"
+        if (schedulingType.compare("STIM_OLD") == 0) {
+            stim_type = STIM_OLD;
+        }
+        else if (schedulingType.compare("CONST_C") == 0) {
+            stim_type = CONST_C;
+        }
+        else if (schedulingType.compare("VAR_C_P1") == 0) {
+            stim_type = VAR_C_P1;
+        }
+        else if (schedulingType.compare("VAR_C_VAR_P") == 0) {
+            stim_type = VAR_C_VAR_P;
+        }
+        else {
+            error("Wrong \"stimulusType\" parameter");
         }
 
         isCentralized = false;
@@ -650,16 +672,98 @@ bool UDPBasicRecharge::checkRechargingStationFree(void) {
 double UDPBasicRecharge::calculateRechargeProb(void) {
 
     if (st == STIMULUS) {
+        double ris = 0;
+        int numberNodes = this->getParentModule()->getVectorSize();
+        double s, c, t;
+        double produttoria, nmeno1SquareRoot, unomenoCi;
 
         //if (rechargeLostAccess > 0) {
         //    return 1;
         //}
         //else {
+        switch (stim_type) {
+            case STIM_OLD:
+                s = calculateRechargeStimuli();
+                t = calculateRechargeThreshold();
+
+                ris = pow(s, stimulusExponent) / (pow(s, stimulusExponent) + pow(t, stimulusExponent));
+
+                break;
+            case CONST_C:
+                c = (2.0 * sb->getSwapLoose()) / (sb->getDischargingFactor(checkRechargeTimer) + (sb->getChargingFactor(checkRechargeTimer)));
+                s = pow(c, 1.0 / (((double) numberNodes) - 1.0));
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, (1.0 - s)); fflush(stderr);
+
+                ris = 1.0 - s;
+
+                break;
+            case VAR_C_P1:
+                produttoria = 1.0;
+
+                for (int j = 0; j < numberNodes; j++) {
+                    UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+
+                    produttoria *= (1.0 - hostj->getGameTheoryC());
+                }
+                nmeno1SquareRoot = pow(produttoria, 1.0 / (((double) numberNodes) - 1.0));
+                unomenoCi = 1.0 - getGameTheoryC();
+
+                s = nmeno1SquareRoot / unomenoCi;
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n", (1.0 - s)); fflush(stderr);
+
+                ris = 1.0 - s;
+
+                break;
+            case VAR_C_VAR_P:
+
+                break;
+            default:
+                break;
+        }
+
+        return ris;
+
+
+        /*if (developingStimuli) {
+            int numberNodes = this->getParentModule()->getVectorSize();
+            double ris = 0;
+
+            if (stim_type ==  CONST_C) {
+                double c = (2.0 * sb->getSwapLoose()) / (sb->getDischargingFactor(checkRechargeTimer) + (sb->getChargingFactor(checkRechargeTimer)));
+                double s = pow(c, 1.0 / (((double) numberNodes) - 1.0));
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, (1.0 - s)); fflush(stderr);
+            }
+            else if (stim_type ==  VAR_C_P1) {
+
+            }
+
+            double produttoria = 1.0;
+
+            for (int j = 0; j < numberNodes; j++) {
+                UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+
+                produttoria *= (1.0 - hostj->getGameTheoryC());
+            }
+            double nmeno1SquareRoot = pow(produttoria, 1.0 / (((double) numberNodes) - 1.0));
+            double unomenoCi = 1.0 - getGameTheoryC();
+
+            double s = nmeno1SquareRoot / unomenoCi;
+
+            fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n", (1.0 - s)); fflush(stderr);
+
+            return (1.0 - s);
+
+            return ris;
+        }
+        else {
             double stim = calculateRechargeStimuli();
             double tetha = calculateRechargeThreshold();
 
             return (pow(stim, stimulusExponent) / (pow(stim, stimulusExponent) + pow(tetha, stimulusExponent)));
-        //}
+        }*/
     }
     else {//if (st == PROBABILISTIC) {
         return (1 - sb->getBatteryLevelPercInitial());
@@ -771,18 +875,26 @@ double UDPBasicRecharge::calculateRechargeStimuli(void) {
     double energyFactor = sb->getBatteryLevelAbs() / maxE;
 
     return pow(timeFactor, energyFactor);*/
-    if (sb->getState() != power::SimpleBattery::DISCHARGING){
+
+    if (stim_type != STIM_OLD) {
+
+        //TODO per ora ritorno un valore costante
         return 0;
     }
-    if (firstRecharge) {
-        return dblrand();
-    }
     else {
-        if (makeLowEnergyFactorCurves) {
-            return pow(calculateRechargeStimuliTimeFactor(), (1.0 / (1.0 - calculateRechargeStimuliEnergyFactor())));
+        if (sb->getState() != power::SimpleBattery::DISCHARGING){
+            return 0;
+        }
+        if (firstRecharge) {
+            return dblrand();
         }
         else {
-            return pow(calculateRechargeStimuliTimeFactor(), calculateRechargeStimuliEnergyFactor());
+            if (makeLowEnergyFactorCurves) {
+                return pow(calculateRechargeStimuliTimeFactor(), (1.0 / (1.0 - calculateRechargeStimuliEnergyFactor())));
+            }
+            else {
+                return pow(calculateRechargeStimuliTimeFactor(), calculateRechargeStimuliEnergyFactor());
+            }
         }
     }
 }
@@ -813,8 +925,16 @@ double UDPBasicRecharge::calculateRechargeThreshold(void) {
     else {
         return 0;
     }*/
-    double ris = ((double) myDegree) / 6.0;
-    if (ris > 1) ris = 1;
+    double ris = 0;
+
+    if (stim_type != STIM_OLD) {
+        //TODO per ora ritorno un valore costante
+        ris = 0;
+    }
+    else {
+        ris = ((double) myDegree) / 6.0;
+        if (ris > 1) ris = 1;
+    }
     return ris;
 }
 
@@ -920,122 +1040,128 @@ double UDPBasicRecharge::calculateRechargeTime(bool log) {
 
     if (st == STIMULUS) {
 
-        // default charge until full charge
-        //double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
-        double tt = numRechargeSlotsStimulusZeroNeigh * checkRechargeTimer;
+        if (stim_type != STIM_OLD) {
+            return checkRechargeTimer;
+        }
+        else {
 
-        if (log) ss << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
+            // default charge until full charge
+            //double tt = ((sb->getFullCapacity() - sb->getBatteryLevelAbs()) / sb->getChargingFactor(checkRechargeTimer)) * checkRechargeTimer;
+            double tt = numRechargeSlotsStimulusZeroNeigh * checkRechargeTimer;
 
-        if (neigh.size() > 0) {
+            if (log) ss << "RECHARGETIME STIMULUS: Default charge time: " << tt << " - Neigh size: " << neigh.size() << endl;
 
-            std::map<int, nodeInfo_t> filteredNeigh;
-            getFilteredNeigh(filteredNeigh);
+            if (neigh.size() > 0) {
 
-            double sumE = sb->getBatteryLevelAbs();
-            double maxE = sb->getBatteryLevelAbs();
-            double minE = sb->getBatteryLevelAbs();
-            if (log) ss << "RECHARGETIME STIMULUS: my battery: " << sb->getBatteryLevelAbs() << endl;
-            for (auto it = filteredNeigh.begin(); it != filteredNeigh.end(); it++) {
-            //for (auto it = neigh.begin(); it != neigh.end(); it++) {
-                nodeInfo_t *act = &(it->second);
+                std::map<int, nodeInfo_t> filteredNeigh;
+                getFilteredNeigh(filteredNeigh);
 
-                sumE += act->batteryLevelAbs;
-                if (act->batteryLevelAbs > maxE)
-                    maxE = act->batteryLevelAbs;
-                if (act->batteryLevelAbs < minE)
-                    minE = act->batteryLevelAbs;
+                double sumE = sb->getBatteryLevelAbs();
+                double maxE = sb->getBatteryLevelAbs();
+                double minE = sb->getBatteryLevelAbs();
+                if (log) ss << "RECHARGETIME STIMULUS: my battery: " << sb->getBatteryLevelAbs() << endl;
+                for (auto it = filteredNeigh.begin(); it != filteredNeigh.end(); it++) {
+                //for (auto it = neigh.begin(); it != neigh.end(); it++) {
+                    nodeInfo_t *act = &(it->second);
 
-                if (log) ss << "RECHARGETIME STIMULUS: others battery: " << act->batteryLevelAbs << endl;
+                    sumE += act->batteryLevelAbs;
+                    if (act->batteryLevelAbs > maxE)
+                        maxE = act->batteryLevelAbs;
+                    if (act->batteryLevelAbs < minE)
+                        minE = act->batteryLevelAbs;
 
-                //TODO remove
-                break;
-            }
+                    if (log) ss << "RECHARGETIME STIMULUS: others battery: " << act->batteryLevelAbs << endl;
 
-            //double averageE = sumE / (((double) neigh.size()) + 1.0);
-            //double averageE = sumE / (((double) nodeFiltered.size()) + 1.0);
-            double averageE = sumE / (((double) filteredNeigh.size()) + 1.0);
+                    //TODO remove
+                    //break;
+                }
 
-            if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
-            //if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
-                    << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
-                    << " - SwapLoose Factor: " << sb->getSwapLoose()
-                    << " - NodeFiltered size: " << filteredNeigh.size()
-                    << " - Neigh size: " << neigh.size()
-                    //<< " - stationANDnodeKNOWN: " << stationANDnodeKNOWN
-                    //<< " - reinforcementRechargeTime: " << reinforcementRechargeTime
-                    << " - checkRechargeTimer: " << checkRechargeTimer
-                    << endl;
+                //double averageE = sumE / (((double) neigh.size()) + 1.0);
+                //double averageE = sumE / (((double) nodeFiltered.size()) + 1.0);
+                double averageE = sumE / (((double) filteredNeigh.size()) + 1.0);
 
-            //double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
-            double valToUse = 1;
-            switch (rlt) {
-            case MIN_VAL:
-                valToUse = minE;
-                break;
+                if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
+                //if (log) ss << "RECHARGETIME STIMULUS: Average Energy: " << averageE << ", Max Energy: " << maxE
+                        << " - Discharging Factor: " << sb->getDischargingFactor(checkRechargeTimer)
+                        << " - SwapLoose Factor: " << sb->getSwapLoose()
+                        << " - NodeFiltered size: " << filteredNeigh.size()
+                        << " - Neigh size: " << neigh.size()
+                        //<< " - stationANDnodeKNOWN: " << stationANDnodeKNOWN
+                        //<< " - reinforcementRechargeTime: " << reinforcementRechargeTime
+                        << " - checkRechargeTimer: " << checkRechargeTimer
+                        << endl;
 
-            case MAX_VAL:
-                valToUse = maxE;
-                break;
+                //double numSteps = (maxE - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+                double valToUse = 1;
+                switch (rlt) {
+                case MIN_VAL:
+                    valToUse = minE;
+                    break;
 
-            case AVG_VAL:
-                valToUse = averageE;
-                break;
+                case MAX_VAL:
+                    valToUse = maxE;
+                    break;
 
-            default:
-                error("Wring rlt value");
-                break;
-            }
-            double tmpnumSteps = (valToUse - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
-            double swapPenalitiesEstimation = calculateSwapPenalitiesEstimationCount(tmpnumSteps/checkRechargeTimer) * (2.0 * sb->getSwapLoose());
-            double numSteps = (valToUse - (2.0 * sb->getSwapLoose()) - swapPenalitiesEstimation) / sb->getDischargingFactor(checkRechargeTimer);
+                case AVG_VAL:
+                    valToUse = averageE;
+                    break;
 
-            if (log) ss << "RECHARGETIME STIMULUS: swapPenalitiesEstimation: " << swapPenalitiesEstimation <<
-                    ", tmpnumSteps: " << tmpnumSteps <<
-                    ", numSteps: " << numSteps << endl;
+                default:
+                    error("Wring rlt value");
+                    break;
+                }
+                double tmpnumSteps = (valToUse - (2.0 * sb->getSwapLoose())) / sb->getDischargingFactor(checkRechargeTimer);
+                double swapPenalitiesEstimation = calculateSwapPenalitiesEstimationCount(tmpnumSteps/checkRechargeTimer) * (2.0 * sb->getSwapLoose());
+                double numSteps = (valToUse - (2.0 * sb->getSwapLoose()) - swapPenalitiesEstimation) / sb->getDischargingFactor(checkRechargeTimer);
 
-            //int actualNeigh = neigh.size();
-            //if (actualNeigh > 7) actualNeigh = 7;
-            //double numChargeSlots = numSteps / ((double) neigh.size());
-            //double numChargeSlots = numSteps / ((double) actualNeigh);
-            //double numChargeSlots = numSteps / ((double) nodeFiltered.size());
-            double numChargeSlots;
-            if (stationANDnodeKNOWN) {
-                int numberNodes = this->getParentModule()->getVectorSize();
-                numChargeSlots = numSteps / ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0);
+                if (log) ss << "RECHARGETIME STIMULUS: swapPenalitiesEstimation: " << swapPenalitiesEstimation <<
+                        ", tmpnumSteps: " << tmpnumSteps <<
+                        ", numSteps: " << numSteps << endl;
 
-                if (log) ss << "RECHARGETIME STIMULUS: numSteps: " << numSteps <<
-                        ", numberNodes: " << numberNodes <<
-                        ", chargingStationNumber: " << chargingStationNumber <<
-                        ", n-1: " << ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0) <<
-                        ", numChargeSlots: " << numChargeSlots <<
-                        endl;
-            }
-            else {
-                numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
-            }
-            //double numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
-            tt = numChargeSlots * checkRechargeTimer;
+                //int actualNeigh = neigh.size();
+                //if (actualNeigh > 7) actualNeigh = 7;
+                //double numChargeSlots = numSteps / ((double) neigh.size());
+                //double numChargeSlots = numSteps / ((double) actualNeigh);
+                //double numChargeSlots = numSteps / ((double) nodeFiltered.size());
+                double numChargeSlots;
+                if (stationANDnodeKNOWN) {
+                    int numberNodes = this->getParentModule()->getVectorSize();
+                    numChargeSlots = numSteps / ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0);
 
-            //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
-            //tt = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+                    if (log) ss << "RECHARGETIME STIMULUS: numSteps: " << numSteps <<
+                            ", numberNodes: " << numberNodes <<
+                            ", chargingStationNumber: " << chargingStationNumber <<
+                            ", n-1: " << ((((double) numberNodes) / ((double) chargingStationNumber)) - 1.0) <<
+                            ", numChargeSlots: " << numChargeSlots <<
+                            endl;
+                }
+                else {
+                    numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
+                }
+                //double numChargeSlots = numSteps / ((double) filteredNeigh.size() + 1.0);
+                tt = numChargeSlots * checkRechargeTimer;
 
-            if (reinforcementRechargeTime) {
-                tt = reinforceTimeVal(tt);
-            }
+                //tt = (averageE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
+                //tt = (maxE / ((sb->getDischargingFactor(checkRechargeTimer)) * ((double) neigh.size()))) * checkRechargeTimer;
 
-            if (chargeTimeOthersNodeFactor > 0) {
-                double diffOthers = calculateChargeDiff(tt);
-                if (diffOthers > 0) {
-                    if (log) ss << "RECHARGETIME STIMULUS: my tt: " << tt << endl;
-                    tt = (chargeTimeOthersNodeFactor * diffOthers) + ((1.0 - chargeTimeOthersNodeFactor) * tt);
-                    if (log) ss << "RECHARGETIME STIMULUS: diffOthers: " << diffOthers
-                            << " chargeTimeOthersNodeFactor: " << chargeTimeOthersNodeFactor
-                            << endl;
+                if (reinforcementRechargeTime) {
+                    tt = reinforceTimeVal(tt);
+                }
+
+                if (chargeTimeOthersNodeFactor > 0) {
+                    double diffOthers = calculateChargeDiff(tt);
+                    if (diffOthers > 0) {
+                        if (log) ss << "RECHARGETIME STIMULUS: my tt: " << tt << endl;
+                        tt = (chargeTimeOthersNodeFactor * diffOthers) + ((1.0 - chargeTimeOthersNodeFactor) * tt);
+                        if (log) ss << "RECHARGETIME STIMULUS: diffOthers: " << diffOthers
+                                << " chargeTimeOthersNodeFactor: " << chargeTimeOthersNodeFactor
+                                << endl;
+                    }
                 }
             }
-        }
 
-        recTime = tt;
+            recTime = tt;
+        }
     }
     else { //if (st == PROBABILISTIC) {
         recTime = numRechargeSlotsProbabilistic * checkRechargeTimer;
@@ -1899,5 +2025,81 @@ double UDPBasicRecharge::getMyCoverageActual(void) {
     return countCov;
 
 }
+
+double UDPBasicRecharge::getGameTheoryC(void) {
+    double d = 0;
+
+    d = (getTheta() + getGamma()) / (getAlpha() + getBeta());
+
+    if (d > 1) d = 1;
+    if (d < 0) d = 0;
+    return (1.0 - d);
+}
+
+double UDPBasicRecharge::getTheta(void) {
+    double ris = 0;
+
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        ris = sb->getSwapLoose();
+    }
+    else {
+        ris = sb->getSwapLoose();
+    }
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGamma(void) {
+    double ris = 0;
+
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        ris = sb->getSwapLoose();
+    }
+    else {
+        ris = sb->getSwapLoose();
+    }
+
+    return ris;
+}
+
+double UDPBasicRecharge::getAlpha(void) {
+    double ris = 0;
+
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        ris = sb->getSwapLoose();
+    }
+    else {
+        ris = sb->getDischargingFactor(checkRechargeTimer);
+    }
+
+    return ris;
+}
+
+double UDPBasicRecharge::getBeta(void) {
+    double ris = 0;
+
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        ris = sb->getSwapLoose();
+    }
+    else {
+        ris = sb->getChargingFactor(checkRechargeTimer);
+    }
+
+    return ris;
+}
+
+double UDPBasicRecharge::getP(void) {
+    double ris = 0;
+
+    if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        ris = 1;
+    }
+    else {
+        ris = 1;
+    }
+
+    return ris;
+}
+
 
 } /* namespace inet */
