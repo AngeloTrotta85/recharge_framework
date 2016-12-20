@@ -12,15 +12,19 @@
       </items>
     </datasets>
     <datasets name="battery">
-      <items xsi:type="scave:Add" filterPattern="EnergyVal AND attr:DS(VAR_C_P1) AND run(TestAll_DEVELOPSTIM-13-20161216-17:38:05-26610)  " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="EnergyVal AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM-14-20161219-17:21:19-11065)     " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="battery" lineNameFormat=""/>
     </datasets>
     <datasets name="rechargestation">
-      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND attr:DS(VAR_C_P1) AND run(TestAll_DEVELOPSTIM-12-20161216-17:38:05-26609)  " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND attr:DS(VAR_C_VAR_P)  AND run(TestAll_DEVELOPSTIM-14*)  " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="recharging" lineNameFormat=""/>
+    </datasets>
+    <datasets name="responseFunc">
+      <items xsi:type="scave:Add" filterPattern="ResponseVal AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM-14*)  " type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="response" lineNameFormat=""/>
     </datasets>
   </datasets>
   <chartSheets>
-    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.1/@items.1 //@datasets/@datasets.2/@items.1"/>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.1/@items.1 //@datasets/@datasets.2/@items.1 //@datasets/@datasets.3/@items.1"/>
   </chartSheets>
 </scave:Analysis>

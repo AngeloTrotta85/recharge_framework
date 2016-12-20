@@ -213,6 +213,9 @@ public:
     double getP(void);
 
     double getEavg(void);
+    double getEmax(void);
+
+    virtual double calculateNodeDischargeProb(void);
 
     //bool compare_energy (const nodeAlgo_t& first, const nodeAlgo_t& second);
 
@@ -238,6 +241,7 @@ private:
     cOutVector timeFactorVector;
     cOutVector energyFactorVector;
     cOutVector energyVector;
+    cOutVector failedAttemptVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
@@ -252,6 +256,8 @@ private:
     double reinforcementVal;
 
     double inRechargingTime;
+
+    int failedAttemptCount;
 
     //parameters
     double checkRechargeTimer;

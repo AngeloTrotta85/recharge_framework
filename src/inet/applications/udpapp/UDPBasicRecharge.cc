@@ -90,6 +90,8 @@ void UDPBasicRecharge::initialize(int stage)
         reinforcementVal = -1;
         inRechargingTime = 0;
 
+        failedAttemptCount = 0;
+
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
         if (schedulingType.compare("ANALYTICAL") == 0) {
@@ -181,6 +183,7 @@ void UDPBasicRecharge::initialize(int stage)
         timeFactorVector.setName("TimeFactorVal");
         energyFactorVector.setName("EnergyFactorVal");
         energyVector.setName("EnergyVal");
+        failedAttemptVector.setName("FailedAttemptVal");
 
         WATCH(st);
     }
@@ -255,19 +258,29 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         firstRecharge = false;
 
         if (checkRechargingStationFree()) {
-            double cTime = calculateRechargeTime(true);
+
 
             rechargeLostAccess = 0;
 
-            inRechargingTime += cTime;
+            //inRechargingTime += cTime;
 
             lastPosBeforeCharge = mob->getCurrentPosition();
 
             sb->setState(power::SimpleBattery::CHARGING);
 
-            fprintf(stderr, "[%d] - Going in charging: %f\n", myAppAddr, cTime);fflush(stderr);
+            if ((st == STIMULUS) && (stim_type != STIM_OLD)) {
+                // do nothing
+                inRechargingTime += checkRechargeTimer;
+            }
+            else {
+                double cTime = calculateRechargeTime(true);
 
-            scheduleAt(simTime() + cTime, dischargeTimer);
+                inRechargingTime += cTime;
+
+                fprintf(stderr, "[%d] - Going in charging: %f\n", myAppAddr, cTime);fflush(stderr);
+
+                scheduleAt(simTime() + cTime, dischargeTimer);
+            }
 
             if (printAnalticalLog) {
                 FILE *f = fopen(logFile, "a");
@@ -285,6 +298,8 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
         }
         else {
             rechargeLostAccess++;
+            failedAttemptCount++;
+
             sb->setDoubleSwapPenality();
         }
 
@@ -340,6 +355,9 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
 
         if (sb->getState() == power::SimpleBattery::CHARGING){
             checkDischarge();
+            if (sb->getState() == power::SimpleBattery::CHARGING) {
+                inRechargingTime += checkRechargeTimer;
+            }
         }
         else if (sb->getState() == power::SimpleBattery::DISCHARGING){
             checkRecharge();
@@ -410,6 +428,7 @@ void UDPBasicRecharge::make1secStats(void) {
         degreeVector.record(calculateNodeDegree());
         timeFactorVector.record(calculateRechargeStimuliTimeFactor());
         energyFactorVector.record(calculateRechargeStimuliEnergyFactor());
+        failedAttemptVector.record(failedAttemptCount);
     }
     energyVector.record(sb->getBatteryLevelAbs());
 }
@@ -677,6 +696,7 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
         double s, c, t;
         double nmeno1SquareRoot, unomenoCi;
         long double produttoria;
+        long double dischargeP = -1;
 
         //if (rechargeLostAccess > 0) {
         //    return 1;
@@ -727,11 +747,49 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
                         produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n\n", ris); fflush(stderr);
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC_P1, ris: %lf\n\n", ris); fflush(stderr);
 
 
                 break;
             case VAR_C_VAR_P:
+                produttoria = 1.0;
+
+                for (int j = 0; j < numberNodes; j++) {
+                    UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                    power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+                    double hostC = hostj->getGameTheoryC();
+                    long double ppp = 1.0 - hostC;
+                    produttoria = produttoria * ppp;
+
+                    if (battN->getState() == power::SimpleBattery::CHARGING) {
+                        dischargeP = hostj->calculateNodeDischargeProb();
+                    }
+
+                    //fprintf(stderr, "DEVSTIM: produttoriaTMP: %Lf; ppp: %Lf\n", produttoria, ppp); fflush(stderr);
+                }
+                if (dischargeP > 0) {
+                    nmeno1SquareRoot = powl(produttoria * (1.0 / dischargeP), 1.0 / (((long double) numberNodes) - 1.0));
+                }
+                else {
+                    nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
+                }
+                unomenoCi = 1.0 - getGameTheoryC();
+
+                if (unomenoCi > 0){
+                    s = nmeno1SquareRoot / unomenoCi;
+                    if (s > 1) s = 1;
+                    if (s < 0) s = 0;
+                }
+                else {
+                    s = 1.0;
+                }
+
+                ris = 1.0 - s;
+
+                fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
+                        produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
+
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC_VAR_P, ris: %lf\n\n", ris); fflush(stderr);
 
                 break;
             default:
@@ -1259,17 +1317,67 @@ double UDPBasicRecharge::calculateDischargeProb(void) {
     }
 }
 
-void UDPBasicRecharge::checkDischarge(void) {
-    double prob = calculateDischargeProb();
+double UDPBasicRecharge::calculateNodeDischargeProb(void) {
+    if (sb->isFull()) {
+        return 1;
+    }
+    else {
+        if ((st == STIMULUS) && (stim_type != STIM_OLD)) {
 
-    if (dblrand() < prob) {
+            int numberNodes = this->getParentModule()->getVectorSize();
+            double estimatedTimeInRecharging;
+            double ris = 1;
+
+            switch (stim_type) {
+            case CONST_C:
+            default:
+                ris = 1.0;
+                break;
+            case VAR_C_P1:
+                ris = 1.0;
+                break;
+            case VAR_C_VAR_P:
+                estimatedTimeInRecharging = (getEavg() - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes - 1.0)));
+                ris = 1.0 / estimatedTimeInRecharging;
+                break;
+            }
+
+            fprintf(stderr, "calculateNodeDischargeProb = %lf\n", ris); fflush(stderr);
+
+            if (ris < 0) ris = 0;
+            if (ris > 1) ris = 1;
+
+            return ris;
+        }
+        else {
+            // in the older case, this function is not used for discharging method
+            return 0;
+        }
+    }
+}
+
+void UDPBasicRecharge::checkDischarge(void) {
+    double prob = 0;
+
+    if ((st == STIMULUS) && (stim_type != STIM_OLD)) {
+        prob = calculateNodeDischargeProb();
+    }
+    else {
+        prob = calculateDischargeProb();
+    }
+
+    if (dblrand() <= prob) {
         sb->setState(power::SimpleBattery::DISCHARGING);
 
         //stop the node
         neigh.clear();
         //mob->clearVirtualSprings();
-        mob->clearVirtualSpringsAndsetPosition(rebornPos);
-
+        if (returnBackAfterRecharge) {
+            mob->clearVirtualSpringsAndsetPosition(lastPosBeforeCharge);
+        }
+        else {
+            mob->clearVirtualSpringsAndsetPosition(rebornPos);
+        }
         lastRechargeTimestamp = simTime();
 
         if (printAnalticalLog) {
@@ -2148,6 +2256,20 @@ double UDPBasicRecharge::getEavg(void) {
     }
 
     return (sum / ((double) numberNodes));
+}
+
+double UDPBasicRecharge::getEmax(void) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+    double max = 0;
+    for (int j = 0; j < numberNodes; j++) {
+        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+        if (hostjsb->getBatteryLevelAbs() > max){
+            max = hostjsb->getBatteryLevelAbs();
+        }
+    }
+
+    return max;
 }
 
 } /* namespace inet */
