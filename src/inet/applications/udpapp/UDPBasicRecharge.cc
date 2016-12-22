@@ -144,6 +144,34 @@ void UDPBasicRecharge::initialize(int stage)
             error("Wrong \"stimulusType\" parameter");
         }
 
+        std::string constType = par("varConstantType").stdstringValue();
+        //"SIGMOID", "LINEAR1", "LINEAR2"
+        if (constType.compare("SIGMOID") == 0) {
+            constant_type = SIGMOID;
+        }
+        else if (constType.compare("LINEAR1") == 0) {
+            constant_type = LINEAR1;
+        }
+        else if (constType.compare("LINEAR2") == 0) {
+            constant_type = LINEAR2;
+        }
+        else if (constType.compare("LINEAR3") == 0) {
+            constant_type = LINEAR3;
+        }
+        else {
+            error("Wrong \"varConstantType\" parameter");
+        }
+
+        std::string probType = par("varProbabilityType").stdstringValue();
+        //"ONE_OVER_FORMULAPAPER"
+        if (probType.compare("ONE_OVER_FORMULAPAPER") == 0) {
+            probability_type = ONE_OVER_FORMULAPAPER;
+        }
+        else {
+            error("Wrong \"varProbabilityType\" parameter");
+        }
+
+
         isCentralized = false;
         if ((st == ANALYTICAL) || (st == ROUNDROBIN)) {
             isCentralized = true;
@@ -720,37 +748,6 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
 
                 break;
             case VAR_C_P1:
-                produttoria = 1.0;
-
-                for (int j = 0; j < numberNodes; j++) {
-                    UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
-                    double hostC = hostj->getGameTheoryC();
-                    long double ppp = 1.0 - hostC;
-                    produttoria = produttoria * ppp;
-
-                    //fprintf(stderr, "DEVSTIM: produttoriaTMP: %Lf; ppp: %Lf\n", produttoria, ppp); fflush(stderr);
-                }
-                nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
-                unomenoCi = 1.0 - getGameTheoryC();
-
-                if (unomenoCi > 0){
-                    s = nmeno1SquareRoot / unomenoCi;
-                    if (s > 1) s = 1;
-                    if (s < 0) s = 0;
-                }
-                else {
-                    s = 1.0;
-                }
-
-                ris = 1.0 - s;
-
-                fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
-                        produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
-
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC_P1, ris: %lf\n\n", ris); fflush(stderr);
-
-
-                break;
             case VAR_C_VAR_P:
                 produttoria = 1.0;
 
@@ -761,8 +758,10 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                     long double ppp = 1.0 - hostC;
                     produttoria = produttoria * ppp;
 
-                    if (battN->getState() == power::SimpleBattery::CHARGING) {
-                        dischargeP = hostj->calculateNodeDischargeProb();
+                    if (stim_type == VAR_C_VAR_P) {
+                        if (battN->getState() == power::SimpleBattery::CHARGING) {
+                            dischargeP = hostj->calculateNodeDischargeProb();
+                        }
                     }
 
                     //fprintf(stderr, "DEVSTIM: produttoriaTMP: %Lf; ppp: %Lf\n", produttoria, ppp); fflush(stderr);
@@ -789,9 +788,10 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
                         produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC_VAR_P, ris: %lf\n\n", ris); fflush(stderr);
+                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n\n", ris); fflush(stderr);
 
                 break;
+
             default:
                 break;
         }
@@ -2150,10 +2150,84 @@ double UDPBasicRecharge::getMyCoverageActual(void) {
 
 }
 
+double UDPBasicRecharge::getGameTheoryC_Sigmoid(void) {
+    double ris = 0;
+    double eavg = getEavg();
+    //double e = pow (eavg / sb->getBatteryLevelAbs(), 2.0);
+    double e = exp (1.0 - (sb->getBatteryLevelAbs() / eavg) );
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+
+    ris = ((a / e) + b - t - g) / (a + b);
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGameTheoryC_Linear1(void) {
+    double ris = 0;
+    double eMAX = getEmax();
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double e = (eMAX - sb->getBatteryLevelAbs()) / eMAX;
+
+    ris = ((a / e) + b - t - g) / (a + b);
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGameTheoryC_Linear2(void) {
+    double ris = 0;
+    double eMAX = getEmax();
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double e = sb->getBatteryLevelAbs() / eMAX;
+
+    ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGameTheoryC_Linear3(void) {
+    double ris = 0;
+    double eMAX = getEmax();
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double e = (eMAX - sb->getBatteryLevelAbs()) / eMAX;
+
+    ris = 1.0 - ( (t + g) / (e * (a + b)) );
+
+    return ris;
+}
+
+
 double UDPBasicRecharge::getGameTheoryC(void) {
     double ris = 0;
 
     if ( (stim_type == VAR_C_P1) || (stim_type == VAR_C_VAR_P) ) {
+        switch (constant_type) {
+        case SIGMOID:
+        default:
+            ris = getGameTheoryC_Sigmoid();
+            break;
+        case LINEAR1:
+            ris = getGameTheoryC_Linear1();
+            break;
+        case LINEAR2:
+            ris = getGameTheoryC_Linear2();
+            break;
+        case LINEAR3:
+            ris = getGameTheoryC_Linear3();
+            break;
+        }
+        /*
         double eavg = getEavg();
         //double e = pow (eavg / sb->getBatteryLevelAbs(), 2.0);
         double e = exp (1.0 - (sb->getBatteryLevelAbs() / eavg) );
@@ -2163,6 +2237,7 @@ double UDPBasicRecharge::getGameTheoryC(void) {
         double g = getGamma();
 
         ris = ((a / e) + b - t - g) / (a + b);
+        */
 
         //fprintf(stderr, "DEVSTIM: myE: %lf; avgE: %lf; ratio: %lf\n", sb->getBatteryLevelAbs(), eavg, eavg / sb->getBatteryLevelAbs()); fflush(stderr);
         //fprintf(stderr, "DEVSTIM: getGameTheoryC - e^2: %lf theta: %lf; gamma: %lf; alpha: %lf; beta: %lf; ris: %lf\n", e, t, g, a, b, ris); fflush(stderr);

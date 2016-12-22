@@ -49,6 +49,17 @@ public:
         VAR_C_VAR_P
     } Stimulus_Type;
 
+    typedef enum {
+        SIGMOID,
+        LINEAR1,
+        LINEAR2,
+        LINEAR3
+    } VarConstant_Type;
+
+    typedef enum {
+        ONE_OVER_FORMULAPAPER
+    } VarProbability_Type;
+
     friend std::ostream& operator<<( std::ostream& os, const Scheduling_Type sstt )
     {
         if (sstt == ANALYTICAL) {
@@ -200,6 +211,12 @@ protected:
 
   virtual void sendRechargeMessage(void);
 
+  double getGameTheoryC_Sigmoid(void);
+  double getGameTheoryC_Linear1(void);
+  double getGameTheoryC_Linear2(void);
+  double getGameTheoryC_Linear3(void);
+
+
 public:
     UDPBasicRecharge() {}
     virtual ~UDPBasicRecharge();
@@ -301,6 +318,8 @@ private:
     //bool developingStimuli;
     double constantTheta;
     Stimulus_Type stim_type;
+    VarConstant_Type constant_type;
+    VarProbability_Type probability_type;
 };
 
 } /* namespace inet */
