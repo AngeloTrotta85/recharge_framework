@@ -78,6 +78,7 @@ void UDPBasicRecharge::initialize(int stage)
         makeCoverageLog = par("makeCoverageLog").boolValue();
         //developingStimuli = par("developingStimuli").boolValue();
         constantTheta = par("constantTheta");
+        dicountminLINEAR4 = par("dicountminLINEAR4");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -158,6 +159,18 @@ void UDPBasicRecharge::initialize(int stage)
         else if (constType.compare("LINEAR3") == 0) {
             constant_type = LINEAR3;
         }
+        else if (constType.compare("LINEARDISCOUNT") == 0) {
+            constant_type = LINEARDISCOUNT;
+        }
+        else if (constType.compare("SIGMOIDDISCOUNT") == 0) {
+            constant_type = SIGMOIDDISCOUNT;
+        }
+        else if (constType.compare("LINEARINCREASE") == 0) {
+            constant_type = LINEARINCREASE;
+        }
+        else if (constType.compare("SIGMOIDINCREASE") == 0) {
+            constant_type = SIGMOIDINCREASE;
+        }
         else {
             error("Wrong \"varConstantType\" parameter");
         }
@@ -212,6 +225,7 @@ void UDPBasicRecharge::initialize(int stage)
         energyFactorVector.setName("EnergyFactorVal");
         energyVector.setName("EnergyVal");
         failedAttemptVector.setName("FailedAttemptVal");
+        dischargeProbVector.setName("DischargeProbVal");
 
         WATCH(st);
     }
@@ -452,11 +466,15 @@ void UDPBasicRecharge::make1secStats(void) {
         }
 
         thresholdVector.record(calculateRechargeThreshold());
-        responseVector.record(calculateRechargeProb());
+        responseVector.record(calculateRechargeProb(true));
         degreeVector.record(calculateNodeDegree());
         timeFactorVector.record(calculateRechargeStimuliTimeFactor());
         energyFactorVector.record(calculateRechargeStimuliEnergyFactor());
         failedAttemptVector.record(failedAttemptCount);
+
+        if (sb->isCharging()) {
+            dischargeProbVector.record(calculateNodeDischargeProb());
+        }
     }
     energyVector.record(sb->getBatteryLevelAbs());
 }
@@ -716,7 +734,7 @@ bool UDPBasicRecharge::checkRechargingStationFree(void) {
     return ris;
 }
 
-double UDPBasicRecharge::calculateRechargeProb(void) {
+double UDPBasicRecharge::calculateRechargeProb(bool useDishargeProbIfTheCase) {
 
     if (st == STIMULUS) {
         double ris = 0;
@@ -744,25 +762,65 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
 
                 ris = 1.0 - s;
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, ris); fflush(stderr);
+                //fprintf(stderr, "DEVSTIM: calculateRechargeProb_STATIC, c: %lf; s: %lf -> %lf\n", c, s, ris); fflush(stderr);
 
                 break;
             case VAR_C_P1:
             case VAR_C_VAR_P:
                 produttoria = 1.0;
 
+                if (stim_type == VAR_C_VAR_P) {
+                    if (useDishargeProbIfTheCase) {
+                        for (int j = 0; j < numberNodes; j++) {
+                            UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                            power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+                            if (battN->getState() == power::SimpleBattery::CHARGING) {
+                                dischargeP = hostj->calculateNodeDischargeProb();
+                            }
+                        }
+                    }
+                }
+                unomenoCi = 1.0 - getGameTheoryC();
+
+                if (unomenoCi > 0){
+
+                    for (int j = 0; j < numberNodes; j++) {
+                        UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                        //power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+                        double hostC = hostj->getGameTheoryC();
+                        long double ppp = (1.0 - hostC) / unomenoCi;
+                        produttoria = produttoria * ppp;
+
+                        //fprintf(stderr, "%Lf ", ppp);
+
+                    }
+                    //fprintf(stderr, "\n");
+                    if (dischargeP > 0) {
+                        produttoria = produttoria * (unomenoCi / dischargeP);
+                    }
+                    else {
+                        produttoria = produttoria * unomenoCi;
+                    }
+
+                    nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
+
+                    s = nmeno1SquareRoot;
+
+                    if (s > 1) s = 1;
+                    if (s < 0) s = 0;
+                }
+                else {
+                    s = 0.0;
+                }
+
+                /*
                 for (int j = 0; j < numberNodes; j++) {
                     UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
                     power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
                     double hostC = hostj->getGameTheoryC();
                     long double ppp = 1.0 - hostC;
                     produttoria = produttoria * ppp;
-
-                    if (stim_type == VAR_C_VAR_P) {
-                        if (battN->getState() == power::SimpleBattery::CHARGING) {
-                            dischargeP = hostj->calculateNodeDischargeProb();
-                        }
-                    }
 
                     //fprintf(stderr, "DEVSTIM: produttoriaTMP: %Lf; ppp: %Lf\n", produttoria, ppp); fflush(stderr);
                 }
@@ -772,7 +830,6 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 else {
                     nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
                 }
-                unomenoCi = 1.0 - getGameTheoryC();
 
                 if (unomenoCi > 0){
                     s = nmeno1SquareRoot / unomenoCi;
@@ -782,13 +839,14 @@ double UDPBasicRecharge::calculateRechargeProb(void) {
                 else {
                     s = 1.0;
                 }
+                */
 
                 ris = 1.0 - s;
 
-                fprintf(stderr, "DEVSTIM: produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
-                        produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
+                //fprintf(stderr, "DEVSTIM. NN: %d; produttoria: %Lf; nmeno1S: %lf; myC: %lf; unomenoCi: %lf; s: %lf\n",
+                //        numberNodes, produttoria, nmeno1SquareRoot, getGameTheoryC(), unomenoCi, s); fflush(stderr);
 
-                fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n\n", ris); fflush(stderr);
+                //fprintf(stderr, "DEVSTIM: calculateRechargeProb_DYNAMIC, ris: %lf\n\n", ris); fflush(stderr);
 
                 break;
 
@@ -1264,7 +1322,7 @@ double UDPBasicRecharge::calculateSendBackoff(void){
 }
 
 void UDPBasicRecharge::checkRecharge(void) {
-    double prob = calculateRechargeProb();
+    double prob = calculateRechargeProb(true);
 
     if (dblrand() < prob) {
         double backoff = calculateSendBackoff();
@@ -1323,26 +1381,60 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
     }
     else {
         if ((st == STIMULUS) && (stim_type != STIM_OLD)) {
-
-            int numberNodes = this->getParentModule()->getVectorSize();
-            double estimatedTimeInRecharging;
             double ris = 1;
 
-            switch (stim_type) {
-            case CONST_C:
-            default:
-                ris = 1.0;
-                break;
-            case VAR_C_P1:
-                ris = 1.0;
-                break;
-            case VAR_C_VAR_P:
-                estimatedTimeInRecharging = (getEavg() - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes - 1.0)));
+            if (stim_type == VAR_C_VAR_P) {
+
+                int numberNodes = this->getParentModule()->getVectorSize();
+                double estimatedTimeInRecharging;
+                //double energyToUse = getEavg(true);
+                //double energyToUse = getEavg(false);
+                double energyToUse = getEmin();
+                //bool isThereAnyCharging = false;
+                double timeCalcNum, timeCalcDen1, timeCalcDen2;
+
+                /*
+                for (int j = 0; j < numberNodes; j++) {
+                    power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+                    if (hostjsb->isCharging()) {
+                        isThereAnyCharging = true;
+                        break;
+                    }
+                }
+
+                if (isThereAnyCharging) {
+                    estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes - 1.0)));
+                }
+                else {
+                    estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes)));
+                }
+                */
+
+                timeCalcNum = energyToUse - (getGamma() + getTheta());
+                timeCalcDen1 = getAlpha() * ((double)(numberNodes - 1.0));
+                timeCalcDen2 = 0.0;
+
+                if (true) {
+                    //timeCalcDen2 = ((double)(numberNodes - 1.0)) * (getRechargeProbMax(false) * (getGamma() + getTheta()));// / checkRechargeTimer;
+                    timeCalcDen2 = ((double)(numberNodes - 1.0)) * ((getGamma() + getTheta()));// / checkRechargeTimer;
+                    //timeCalcDen2 = (1 * (getGamma() + getTheta()));// / checkRechargeTimer;
+                    //timeCalcDen2 = (0 * (getGamma() + getTheta())) / checkRechargeTimer;
+
+                    //fprintf(stderr, "timeCalcDen1: %lf and timeCalcDen2 = %lf\n", timeCalcDen1, timeCalcDen2); fflush(stderr);
+                }
+
+                estimatedTimeInRecharging = timeCalcNum / (timeCalcDen1 + timeCalcDen2);
+                //estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes)));
+                //estimatedTimeInRecharging = estimatedTimeInRecharging / 1.8;
                 ris = 1.0 / estimatedTimeInRecharging;
-                break;
+
+            }
+            else {
+                ris = 1.0;
             }
 
-            fprintf(stderr, "calculateNodeDischargeProb = %lf\n", ris); fflush(stderr);
+            //fprintf(stderr, "calculateNodeDischargeProb = %lf\n", ris); fflush(stderr);
 
             if (ris < 0) ris = 0;
             if (ris > 1) ris = 1;
@@ -2152,7 +2244,7 @@ double UDPBasicRecharge::getMyCoverageActual(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Sigmoid(void) {
     double ris = 0;
-    double eavg = getEavg();
+    double eavg = getEavg(false);
     //double e = pow (eavg / sb->getBatteryLevelAbs(), 2.0);
     double e = exp (1.0 - (sb->getBatteryLevelAbs() / eavg) );
     double a = getAlpha();
@@ -2167,7 +2259,7 @@ double UDPBasicRecharge::getGameTheoryC_Sigmoid(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear1(void) {
     double ris = 0;
-    double eMAX = getEmax();
+    double eMAX = getEmax(false);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2181,12 +2273,13 @@ double UDPBasicRecharge::getGameTheoryC_Linear1(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear2(void) {
     double ris = 0;
-    double eMAX = getEmax();
+    double eMAX = getEmax(false);
+    double eMIN = getEmin(false);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
     double g = getGamma();
-    double e = sb->getBatteryLevelAbs() / eMAX;
+    double e = (sb->getBatteryLevelAbs() - eMIN) / (eMAX - eMIN);
 
     ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
 
@@ -2195,7 +2288,7 @@ double UDPBasicRecharge::getGameTheoryC_Linear2(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear3(void) {
     double ris = 0;
-    double eMAX = getEmax();
+    double eMAX = getEmax(false);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2203,6 +2296,102 @@ double UDPBasicRecharge::getGameTheoryC_Linear3(void) {
     double e = (eMAX - sb->getBatteryLevelAbs()) / eMAX;
 
     ris = 1.0 - ( (t + g) / (e * (a + b)) );
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGameTheoryC_LinearDiscount(void) {
+    double ris = 0;
+    double eMAX = getEmax(false);
+    double eMIN = getEmin(false);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double myE = sb->getBatteryLevelAbs();
+    //double e = (((myE - eMIN) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + dicountminLINEAR4;
+    double e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + dicountminLINEAR4;
+
+    if ((eMAX - eMIN) == 0) {
+        e = 1;
+    }
+
+    ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    //fprintf(stderr, "getGameTheoryC_LinearDiscount: %lf; alpha: %lf; beta: %lf; gamma: %lf; theta: %lf; myE: %lf; eMIN: %lf; eMAX: %lf; e: %lf\n",
+    //        ris, a, b, g, t, myE, eMIN, eMAX, e); fflush(stderr);
+
+    return ris;
+}
+
+
+double UDPBasicRecharge::getGameTheoryC_SigmoidDiscount(void) {
+    double ris = 0;
+    double eMAX = getEmax(false);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double sig1, sig2;
+    double div = eMAX / 50.0;
+
+    if (div < 1.0) div = 1.0;
+
+    sig1 = (0.5 / (1.0 + exp(((eMAX / 4.0)-sb->getBatteryLevelAbs())/div)));
+    sig2 = (0.5 / (1.0 + exp((((eMAX * 3.0) / 4.0)-sb->getBatteryLevelAbs())/div)));
+
+    double sig = 1.0 - (sig1 + sig2);
+    double e = (sig * (1.0 - dicountminLINEAR4)) + dicountminLINEAR4;
+
+    ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    return ris;
+}
+
+double UDPBasicRecharge::getGameTheoryC_LinearIncrease(void) {
+    double ris = 0;
+    double eMAX = getEmax(false);
+    double eMIN = getEmin(false);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double myE = sb->getBatteryLevelAbs();
+    //double e = (((myE - eMIN) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+    double e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+
+    if ((eMAX - eMIN) == 0) {
+        e = 1;
+    }
+
+    ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    //fprintf(stderr, "getGameTheoryC_LinearDiscount: %lf; alpha: %lf; beta: %lf; gamma: %lf; theta: %lf; myE: %lf; eMIN: %lf; eMAX: %lf; e: %lf\n",
+    //        ris, a, b, g, t, myE, eMIN, eMAX, e); fflush(stderr);
+
+    return ris;
+}
+
+
+double UDPBasicRecharge::getGameTheoryC_SigmoidIncrease(void) {
+    double ris = 0;
+    double eMAX = getEmax(false);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double sig1, sig2;
+    double div = eMAX / 50.0;
+
+    if (div < 1.0) div = 1.0;
+
+    sig1 = (0.5 / (1.0 + exp(((eMAX / 4.0)-sb->getBatteryLevelAbs())/div)));
+    sig2 = (0.5 / (1.0 + exp((((eMAX * 3.0) / 4.0)-sb->getBatteryLevelAbs())/div)));
+
+    double sig = sig1 + sig2;
+    double e = (sig * (1.0 - dicountminLINEAR4)) + 1.0;
+
+    ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
 
     return ris;
 }
@@ -2225,6 +2414,18 @@ double UDPBasicRecharge::getGameTheoryC(void) {
             break;
         case LINEAR3:
             ris = getGameTheoryC_Linear3();
+            break;
+        case LINEARDISCOUNT:
+            ris = getGameTheoryC_LinearDiscount();
+            break;
+        case SIGMOIDDISCOUNT:
+            ris = getGameTheoryC_SigmoidDiscount();
+            break;
+        case LINEARINCREASE:
+            ris = getGameTheoryC_LinearIncrease();
+            break;
+        case SIGMOIDINCREASE:
+            ris = getGameTheoryC_SigmoidIncrease();
             break;
         }
         /*
@@ -2321,11 +2522,13 @@ double UDPBasicRecharge::getP(void) {
     return ris;
 }
 
-double UDPBasicRecharge::getEavg(void) {
+double UDPBasicRecharge::getEavg(bool activeOnly) {
     int numberNodes = this->getParentModule()->getVectorSize();
     double sum = 0;
     for (int j = 0; j < numberNodes; j++) {
         power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+        if (activeOnly && hostjsb->isCharging()) continue;
 
         sum += hostjsb->getBatteryLevelAbs();
     }
@@ -2333,14 +2536,47 @@ double UDPBasicRecharge::getEavg(void) {
     return (sum / ((double) numberNodes));
 }
 
-double UDPBasicRecharge::getEmax(void) {
+double UDPBasicRecharge::getEmax(bool activeOnly) {
     int numberNodes = this->getParentModule()->getVectorSize();
     double max = 0;
     for (int j = 0; j < numberNodes; j++) {
         power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
 
+        if (activeOnly && hostjsb->isCharging()) continue;
+
         if (hostjsb->getBatteryLevelAbs() > max){
             max = hostjsb->getBatteryLevelAbs();
+        }
+    }
+
+    return max;
+}
+
+double UDPBasicRecharge::getEmin(bool activeOnly) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+    double min = 1000000000;
+    for (int j = 0; j < numberNodes; j++) {
+        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+
+        if (activeOnly && hostjsb->isCharging()) continue;
+
+        if (hostjsb->getBatteryLevelAbs() < min){
+            min = hostjsb->getBatteryLevelAbs();
+        }
+    }
+
+    return min;
+}
+
+double UDPBasicRecharge::getRechargeProbMax(bool useDishargeProbIfTheCase) {
+    int numberNodes = this->getParentModule()->getVectorSize();
+    double max = 0;
+    for (int j = 0; j < numberNodes; j++) {
+        UDPBasicRecharge *nodeN = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+        double val = nodeN->calculateRechargeProb(useDishargeProbIfTheCase);
+
+        if (val > max){
+            max = val;
         }
     }
 

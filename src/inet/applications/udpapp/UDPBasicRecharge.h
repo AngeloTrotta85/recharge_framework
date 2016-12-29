@@ -53,7 +53,11 @@ public:
         SIGMOID,
         LINEAR1,
         LINEAR2,
-        LINEAR3
+        LINEAR3,
+        LINEARDISCOUNT,
+        SIGMOIDDISCOUNT,
+        LINEARINCREASE,
+        SIGMOIDINCREASE
     } VarConstant_Type;
 
     typedef enum {
@@ -157,7 +161,6 @@ protected:
   double calculateRechargeStimuli(void);
   double calculateRechargeThreshold(void);
 
-  virtual double calculateRechargeProb(void);
   virtual void checkRecharge(void);
   double calculateSendBackoff(void);
 
@@ -215,6 +218,10 @@ protected:
   double getGameTheoryC_Linear1(void);
   double getGameTheoryC_Linear2(void);
   double getGameTheoryC_Linear3(void);
+  double getGameTheoryC_LinearDiscount(void);
+  double getGameTheoryC_SigmoidDiscount(void);
+  double getGameTheoryC_LinearIncrease(void);
+  double getGameTheoryC_SigmoidIncrease(void);
 
 
 public:
@@ -229,10 +236,15 @@ public:
     double getBeta(void);
     double getP(void);
 
-    double getEavg(void);
-    double getEmax(void);
+    double getEavg(bool activeOnly);
+    double getEmax(bool activeOnly);
+    double getEmin(bool activeOnly);
+
+
+    double getRechargeProbMax(bool useDishargeProbIfTheCase);
 
     virtual double calculateNodeDischargeProb(void);
+    virtual double calculateRechargeProb(bool useDishargeProbIfTheCase);
 
     //bool compare_energy (const nodeAlgo_t& first, const nodeAlgo_t& second);
 
@@ -259,6 +271,7 @@ private:
     cOutVector energyFactorVector;
     cOutVector energyVector;
     cOutVector failedAttemptVector;
+    cOutVector dischargeProbVector;
 
     VirtualSpringMobility *mob = nullptr;
     power::SimpleBattery *sb = nullptr;
@@ -306,6 +319,8 @@ private:
     bool printAnalticalLog;
 
     int rechargeLostAccess;
+
+    double dicountminLINEAR4;
 
     bool reinforcementRechargeTime;
     double reinforcementRechargeAlpha;

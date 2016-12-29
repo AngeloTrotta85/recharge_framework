@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
   <inputs>
-    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM/*.vec"/>
-    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM/*.sca"/>
+    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM2/*.vec"/>
+    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM2/*.sca"/>
   </inputs>
   <datasets>
     <datasets name="lifetime">
@@ -12,23 +12,23 @@
       </items>
     </datasets>
     <datasets name="battery">
-      <items xsi:type="scave:Add" filterPattern="EnergyVal AND attr:DS(VAR_C_VAR_P) AND attr:CS(LINEARDISCOUNT) AND attr:DM(0.95)  AND run(TestAll_DEVELOPSTIM-117*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="EnergyVal AND  attr:CS(LINEARINCREASE) AND attr:DM(0.75)   AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM2-2240*) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="battery" lineNameFormat=""/>
     </datasets>
     <datasets name="rechargestation">
-      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND attr:DS(VAR_C_VAR_P) AND attr:CS(LINEARDISCOUNT) AND attr:DM(0.95)  AND run(TestAll_DEVELOPSTIM-117*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="rechargingNodes AND  attr:CS(LINEARINCREASE) AND attr:DM(0.75)   AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM2-2240*) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="recharging" lineNameFormat=""/>
     </datasets>
     <datasets name="responseFunc">
-      <items xsi:type="scave:Add" filterPattern="ResponseVal AND attr:DS(VAR_C_VAR_P) AND attr:CS(LINEARDISCOUNT) AND attr:DM(0.95)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="ResponseVal  AND  attr:CS(LINEARINCREASE) AND attr:DM(0.75)   AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM2-2240*) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="response" lineNameFormat=""/>
     </datasets>
     <datasets name="attempt">
-      <items xsi:type="scave:Add" filterPattern="FailedAttemptVal  AND attr:DS(VAR_C_VAR_P) AND attr:CS(LINEARDISCOUNT) AND attr:DM(0.95)  AND run(TestAll_DEVELOPSTIM-117*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="FailedAttemptVal   AND  attr:CS(LINEARINCREASE) AND attr:DM(0.75)   AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM2-2240*) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="attempt" lineNameFormat=""/>
     </datasets>
     <datasets name="DischargeProb">
-      <items xsi:type="scave:Add" filterPattern="DischargeProbVal AND attr:DS(VAR_C_VAR_P) AND attr:CS(LINEARDISCOUNT) AND attr:DM(0.95)  AND run(TestAll_DEVELOPSTIM-117*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="DischargeProbVal AND  attr:CS(LINEARINCREASE) AND attr:DM(0.75)   AND attr:DS(VAR_C_VAR_P) AND run(TestAll_DEVELOPSTIM2-2240*) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="dischargeProb" lineNameFormat=""/>
     </datasets>
   </datasets>
