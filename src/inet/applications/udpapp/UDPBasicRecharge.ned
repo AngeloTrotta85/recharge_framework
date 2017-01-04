@@ -62,6 +62,7 @@ simple UDPBasicRecharge extends UDPBasicApp
         string varProbabilityType @enum("ONE_OVER_FORMULAPAPER") = default("ONE_OVER_FORMULAPAPER");
         
         double dicountminLINEAR4 = default(0.9);
+        double temp_factorProbDischarge = default(1);
         
         bool makeCoverageLog = default(false);
         //bool developingStimuli = default(false);

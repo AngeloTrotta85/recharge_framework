@@ -321,6 +321,7 @@ private:
     int rechargeLostAccess;
 
     double dicountminLINEAR4;
+    double temp_factorProbDischarge;
 
     bool reinforcementRechargeTime;
     double reinforcementRechargeAlpha;

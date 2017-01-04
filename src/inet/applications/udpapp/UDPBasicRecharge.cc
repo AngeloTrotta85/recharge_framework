@@ -79,6 +79,7 @@ void UDPBasicRecharge::initialize(int stage)
         //developingStimuli = par("developingStimuli").boolValue();
         constantTheta = par("constantTheta");
         dicountminLINEAR4 = par("dicountminLINEAR4");
+        temp_factorProbDischarge = par("temp_factorProbDischarge");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -1389,7 +1390,7 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 double estimatedTimeInRecharging;
                 //double energyToUse = getEavg(true);
                 //double energyToUse = getEavg(false);
-                double energyToUse = getEmin();
+                double energyToUse = getEmin(false);
                 //bool isThereAnyCharging = false;
                 double timeCalcNum, timeCalcDen1, timeCalcDen2;
 
@@ -1426,7 +1427,7 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
 
                 estimatedTimeInRecharging = timeCalcNum / (timeCalcDen1 + timeCalcDen2);
                 //estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes)));
-                //estimatedTimeInRecharging = estimatedTimeInRecharging / 1.8;
+                estimatedTimeInRecharging = estimatedTimeInRecharging / temp_factorProbDischarge;
                 ris = 1.0 / estimatedTimeInRecharging;
 
             }
