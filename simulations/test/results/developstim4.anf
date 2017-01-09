@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
   <inputs>
-    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM3/*.vec"/>
-    <inputs name="/recharge_framework/simulations/test/results/TestAll_DEVELOPSTIM3/*.sca"/>
+    <inputs name="/recharge_framework/simulations/test/results/LinkTestAll_DEVELOPSTIM4/*.vec"/>
+    <inputs name="/recharge_framework/simulations/test/results/LinkTestAll_DEVELOPSTIM4/*.sca"/>
   </inputs>
   <datasets>
     <datasets name="lifetime">
-      <items xsi:type="scave:Add" filterPattern="LIFETIME AND attr:SW(15) "/>
+      <items xsi:type="scave:Add" filterPattern="LIFETIME AND attr:SW(20) "/>
       <items xsi:type="scave:BarChart" name="lifetime">
         <barFields>measurement</barFields>
       </items>

@@ -68,6 +68,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         //bool developingStimuli = default(false);
         double constantTheta = default(1.0);
         
+        double exponential_dischargeProb_decay = default(0.0);
+        
         
         @display("i=block/app");
         @class(UDPBasicRecharge);

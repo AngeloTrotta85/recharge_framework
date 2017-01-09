@@ -80,6 +80,7 @@ void UDPBasicRecharge::initialize(int stage)
         constantTheta = par("constantTheta");
         dicountminLINEAR4 = par("dicountminLINEAR4");
         temp_factorProbDischarge = par("temp_factorProbDischarge");
+        exponential_dischargeProb_decay = par("exponential_dischargeProb_decay");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -93,6 +94,8 @@ void UDPBasicRecharge::initialize(int stage)
         inRechargingTime = 0;
 
         failedAttemptCount = 0;
+
+        startRecharge = simTime();
 
         std::string schedulingType = par("schedulingType").stdstringValue();
         //ANALYTICAL, ROUNDROBIN, STIMULUS
@@ -306,6 +309,7 @@ void UDPBasicRecharge::handleMessageWhenUp(cMessage *msg)
             rechargeLostAccess = 0;
 
             //inRechargingTime += cTime;
+            startRecharge = simTime();
 
             lastPosBeforeCharge = mob->getCurrentPosition();
 
@@ -1393,6 +1397,7 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 double energyToUse = getEmin(false);
                 //bool isThereAnyCharging = false;
                 double timeCalcNum, timeCalcDen1, timeCalcDen2;
+                double gPLUSt = getGamma() + getTheta();
 
                 /*
                 for (int j = 0; j < numberNodes; j++) {
@@ -1412,13 +1417,14 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 }
                 */
 
-                timeCalcNum = energyToUse - (getGamma() + getTheta());
+                timeCalcNum = energyToUse - gPLUSt;
                 timeCalcDen1 = getAlpha() * ((double)(numberNodes - 1.0));
                 timeCalcDen2 = 0.0;
 
                 if (true) {
                     //timeCalcDen2 = ((double)(numberNodes - 1.0)) * (getRechargeProbMax(false) * (getGamma() + getTheta()));// / checkRechargeTimer;
-                    timeCalcDen2 = ((double)(numberNodes - 1.0)) * ((getGamma() + getTheta()));// / checkRechargeTimer;
+                    //timeCalcDen2 = ((double)(numberNodes - 1.0)) * ((getGamma() + getTheta()));// / checkRechargeTimer;
+                    timeCalcDen2 = ((double)(numberNodes - 1.0)) * gPLUSt;// / checkRechargeTimer;
                     //timeCalcDen2 = (1 * (getGamma() + getTheta()));// / checkRechargeTimer;
                     //timeCalcDen2 = (0 * (getGamma() + getTheta())) / checkRechargeTimer;
 
@@ -1428,7 +1434,20 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 estimatedTimeInRecharging = timeCalcNum / (timeCalcDen1 + timeCalcDen2);
                 //estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes)));
                 estimatedTimeInRecharging = estimatedTimeInRecharging / temp_factorProbDischarge;
-                ris = 1.0 / estimatedTimeInRecharging;
+
+                if (exponential_dischargeProb_decay == 0) {
+                    ris = 1.0 / estimatedTimeInRecharging;
+                }
+                else {
+                    double timeInCharge = (simTime() - startRecharge).dbl();
+
+                    if (timeInCharge >= estimatedTimeInRecharging){
+                        ris = 1.0;
+                    }
+                    else {
+                        ris = pow(timeInCharge / estimatedTimeInRecharging, exponential_dischargeProb_decay);
+                    }
+                }
 
             }
             else {

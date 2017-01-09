@@ -286,6 +286,7 @@ private:
     double reinforcementVal;
 
     double inRechargingTime;
+    simtime_t startRecharge;
 
     int failedAttemptCount;
 
@@ -303,6 +304,8 @@ private:
     int roundrobinRechargeSize;
 
     int numRechargeSlotsProbabilistic;
+
+    double exponential_dischargeProb_decay;
 
     double stimulusExponent;
 
