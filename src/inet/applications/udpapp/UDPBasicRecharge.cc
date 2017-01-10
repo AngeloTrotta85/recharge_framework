@@ -130,6 +130,33 @@ void UDPBasicRecharge::initialize(int stage)
         }
 
 
+        std::string dischargeProbEnergyToUseType = par("dischargeProbEnergyToUse").stdstringValue();
+        if (dischargeProbEnergyToUseType.compare("ENERGYMIN") == 0) {
+            dischargeProbEnergyToUse = ENERGYMIN;
+        }
+        else if (dischargeProbEnergyToUseType.compare("ENERGYMAX") == 0) {
+            dischargeProbEnergyToUse = ENERGYMAX;
+        }
+        else if (dischargeProbEnergyToUseType.compare("ENERGYAVG") == 0) {
+            dischargeProbEnergyToUse = ENERGYAVG;
+        }
+        else {
+            error("Wrong \"dischargeProbEnergyToUse\" parameter");
+        }
+
+
+        std::string gameTheoryKnowledgeType_str = par("gameTheoryKnowledgeType").stdstringValue();
+        if (gameTheoryKnowledgeType_str.compare("LOCAL_KNOWLEDGE") == 0) {
+            gameTheoryKnowledgeType = LOCAL_KNOWLEDGE;
+        }
+        else if (gameTheoryKnowledgeType_str.compare("GLOBAL_KNOWLEDGE") == 0) {
+            gameTheoryKnowledgeType = GLOBAL_KNOWLEDGE;
+        }
+        else {
+            error("Wrong \"gameTheoryKnowledgeType\" parameter");
+        }
+
+
 
         std::string stimType = par("stimulusType").stdstringValue();
         //"CONST_C", "VAR_C_P0", "VAR_C_VAR_P"
@@ -1394,10 +1421,25 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 double estimatedTimeInRecharging;
                 //double energyToUse = getEavg(true);
                 //double energyToUse = getEavg(false);
-                double energyToUse = getEmin(false);
+                //double energyToUse = getEmin(false);
+                double energyToUse;
                 //bool isThereAnyCharging = false;
                 double timeCalcNum, timeCalcDen1, timeCalcDen2;
                 double gPLUSt = getGamma() + getTheta();
+
+                energyToUse = sb->getBatteryLevelAbs();
+                switch (dischargeProbEnergyToUse) {
+                case ENERGYMIN:
+                default:
+                    energyToUse = getEmin(false);
+                    break;
+                case ENERGYMAX:
+                    energyToUse = getEmax(false);
+                    break;
+                case ENERGYAVG:
+                    energyToUse = getEavg(false);
+                    break;
+                }
 
                 /*
                 for (int j = 0; j < numberNodes; j++) {
@@ -1433,13 +1475,19 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
 
                 estimatedTimeInRecharging = timeCalcNum / (timeCalcDen1 + timeCalcDen2);
                 //estimatedTimeInRecharging = (energyToUse - getGamma() - getTheta()) / (getAlpha() * ((double)(numberNodes)));
-                estimatedTimeInRecharging = estimatedTimeInRecharging / temp_factorProbDischarge;
+                //estimatedTimeInRecharging = estimatedTimeInRecharging * checkRechargeTimer;
+                //estimatedTimeInRecharging = estimatedTimeInRecharging / temp_factorProbDischarge;
 
                 if (exponential_dischargeProb_decay == 0) {
+                    estimatedTimeInRecharging = estimatedTimeInRecharging / temp_factorProbDischarge;
                     ris = 1.0 / estimatedTimeInRecharging;
                 }
                 else {
                     double timeInCharge = (simTime() - startRecharge).dbl();
+
+                    estimatedTimeInRecharging = estimatedTimeInRecharging * checkRechargeTimer;
+
+                    //fprintf(stderr, "timeInCharge: %lf and estimatedTimeInRecharging = %lf\n", timeInCharge, estimatedTimeInRecharging); fflush(stderr);
 
                     if (timeInCharge >= estimatedTimeInRecharging){
                         ris = 1.0;

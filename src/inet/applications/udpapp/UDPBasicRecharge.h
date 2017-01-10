@@ -88,6 +88,17 @@ public:
         AVG_VAL
     } RechargeLength_Type;
 
+    typedef enum {
+        ENERGYMIN,
+        ENERGYMAX,
+        ENERGYAVG
+    } DischargeProbEnergyToUse_Type;
+
+    typedef enum {
+        LOCAL_KNOWLEDGE,
+        GLOBAL_KNOWLEDGE
+    } GameTheoryKnowledge_Type;
+
     friend std::ostream& operator<<( std::ostream& os, const RechargeLength_Type rrtt )
     {
         if (rrtt == MIN_VAL) {
@@ -300,6 +311,8 @@ private:
     RechargeLength_Type rlt;
     int chargingStationNumber;
     int numRechargeSlotsStimulusZeroNeigh;
+    DischargeProbEnergyToUse_Type dischargeProbEnergyToUse;
+    GameTheoryKnowledge_Type gameTheoryKnowledgeType;
 
     int roundrobinRechargeSize;
 
