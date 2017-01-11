@@ -8,13 +8,13 @@
   </inputs>
   <datasets>
     <datasets name="lifetime">
-      <items xsi:type="scave:Add" filterPattern="LIFETIME AND attr:CHARGFAC(25) AND attr:NO(10) AND attr:SW(1)"/>
+      <items xsi:type="scave:Add" filterPattern="LIFETIME AND attr:CHARGFAC(25) AND attr:NO(10) AND attr:SW(10)"/>
       <items xsi:type="scave:BarChart" name="lifetime">
         <barFields>measurement</barFields>
       </items>
     </datasets>
     <datasets name="battery">
-      <items xsi:type="scave:Add" filterPattern="EnergyVal  AND attr:CHARGFAC(10) AND attr:NO(10) AND attr:SW(5) AND attr:DS(VAR_C_VAR_P) AND attr:EPD(2) and run(TestAll_DEVELOPSTIM_S-175*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="EnergyVal  AND attr:CHARGFAC(25) AND attr:NO(10) AND attr:SW(10) AND attr:CCP(0.5) " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="battery" lineNameFormat=""/>
     </datasets>
     <datasets name="rechargestation">

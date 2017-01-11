@@ -322,6 +322,11 @@ void UDPBasicRecharge::finish(void) {
 
         recordScalar("LIFETIME", simTime());
     }
+
+    if (!isCentralized) {
+        recordScalar("FAILED_ATTEMPT_COUNT", failedAttemptCount);
+        recordScalar("FAILED_ATTEMPT_FREQ", ((double)failedAttemptCount)/simTime().dbl());
+    }
 }
 
 
