@@ -68,6 +68,8 @@ simple UDPBasicRecharge extends UDPBasicApp
         //bool developingStimuli = default(false);
         double constantTheta = default(1.0);
         
+        double const_c_dischargeProb = default(1.0);
+        
         double exponential_dischargeProb_decay = default(0.0);
         string dischargeProbEnergyToUse @enum("ENERGYMIN", "ENERGYMAX", "ENERGYAVG") = default("ENERGYMIN");
         string gameTheoryKnowledgeType @enum("LOCAL_KNOWLEDGE", "GLOBAL_KNOWLEDGE") = default("GLOBAL_KNOWLEDGE");

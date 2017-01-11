@@ -81,6 +81,7 @@ void UDPBasicRecharge::initialize(int stage)
         dicountminLINEAR4 = par("dicountminLINEAR4");
         temp_factorProbDischarge = par("temp_factorProbDischarge");
         exponential_dischargeProb_decay = par("exponential_dischargeProb_decay");
+        const_c_dischargeProb = par("const_c_dischargeProb");
 
         //logFile = par("analticalLogFile").str();
         printAnalticalLog = par("printAnalticalLog").boolValue();
@@ -792,7 +793,9 @@ double UDPBasicRecharge::calculateRechargeProb(bool useDishargeProbIfTheCase) {
 
                 break;
             case CONST_C:
-                c = (2.0 * sb->getSwapLoose()) / (sb->getDischargingFactor(checkRechargeTimer) + (sb->getChargingFactor(checkRechargeTimer)));
+                //c = (2.0 * sb->getSwapLoose()) / (sb->getDischargingFactor(checkRechargeTimer) + (sb->getChargingFactor(checkRechargeTimer)));
+                c = (getGamma()+getTheta()) / (getAlpha() + getBeta());
+                c = c / const_c_dischargeProb;
                 s = pow(c, 1.0 / (((double) numberNodes) - 1.0));
 
                 ris = 1.0 - s;
@@ -1532,6 +1535,9 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                     }
                 }
 
+            }
+            else if (stim_type == CONST_C){
+                ris = const_c_dischargeProb;
             }
             else {
                 ris = 1.0;

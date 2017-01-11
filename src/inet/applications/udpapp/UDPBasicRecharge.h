@@ -323,6 +323,7 @@ private:
 
     double stimulusExponent;
 
+    double const_c_dischargeProb;
     bool makeLowEnergyFactorCurves;
     double timeFactorMultiplier;
     bool godCheckIfRechargeStationFree;
