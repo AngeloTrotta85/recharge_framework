@@ -321,6 +321,12 @@ void UDPBasicRecharge::finish(void) {
         }
 
         recordScalar("LIFETIME", simTime());
+
+        int countRS = 0;
+        for (auto it=rechargingNodesStats.begin(); it!=rechargingNodesStats.end(); it++){
+            countRS += *it;
+        }
+        recordScalar("RECHARGING_STATION_FULL_PERCENTAGE", ((double)countRS)/((double)(rechargingNodesStats.size()*chargingStationNumber)));
     }
 
     if (!isCentralized) {
@@ -490,6 +496,10 @@ void UDPBasicRecharge::make1secStats(void) {
             else {
                 nnodesActive++;
             }
+        }
+
+        if (simTime() > checkRechargeTimer){
+            rechargingNodesStats.push_back(nnodesRecharging);
         }
 
         activeNodesVector.record(nnodesActive);
