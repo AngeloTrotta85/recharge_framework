@@ -38,4 +38,5 @@ packet ApplicationPacketRecharge {
     bool goingToRecharge;
     double goingToRechargeTime;
     double inRecharge;
+    double gameTheoryC;
 }

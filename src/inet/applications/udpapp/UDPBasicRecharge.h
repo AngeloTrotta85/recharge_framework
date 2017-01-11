@@ -132,6 +132,7 @@ public:
         double leftLifetime;
         int nodeDegree;
         double inRechargeT;
+        double gameTheoryC;
     } nodeInfo_t;
 
     typedef struct {
@@ -247,9 +248,9 @@ public:
     double getBeta(void);
     double getP(void);
 
-    double getEavg(bool activeOnly);
-    double getEmax(bool activeOnly);
-    double getEmin(bool activeOnly);
+    double getEavg(bool activeOnly, GameTheoryKnowledge_Type scope);
+    double getEmax(bool activeOnly, GameTheoryKnowledge_Type scope);
+    double getEmin(bool activeOnly, GameTheoryKnowledge_Type scope);
 
 
     double getRechargeProbMax(bool useDishargeProbIfTheCase);

@@ -599,6 +599,7 @@ void UDPBasicRecharge::processPacket(cPacket *pk)
                 node->leftLifetime = aPkt->getLeftLifetime();
                 node->nodeDegree = aPkt->getNodeDegree();
                 node->inRechargeT = aPkt->getInRecharge();
+                node->gameTheoryC = aPkt->getGameTheoryC();
             }
 
             updateVirtualForces();
@@ -638,6 +639,7 @@ void UDPBasicRecharge::sendRechargeMessage(void) {
     payload->setInRecharge(inRechargingTime);
     payload->setGoingToRecharge(true);
     payload->setGoingToRechargeTime(calculateRechargeTime(false));
+    payload->setGameTheoryC(getGameTheoryC());
 
     L3Address destAddr = chooseDestAddr();
     emit(sentPkSignal, payload);
@@ -667,6 +669,7 @@ void UDPBasicRecharge::sendPacket()
         payload->setInRecharge(inRechargingTime);
         payload->setGoingToRecharge(false);
         payload->setGoingToRechargeTime(0);
+        payload->setGameTheoryC(getGameTheoryC());
 
         L3Address destAddr = chooseDestAddr();
         emit(sentPkSignal, payload);
@@ -803,13 +806,22 @@ double UDPBasicRecharge::calculateRechargeProb(bool useDishargeProbIfTheCase) {
 
                 if (stim_type == VAR_C_VAR_P) {
                     if (useDishargeProbIfTheCase) {
-                        for (int j = 0; j < numberNodes; j++) {
-                            UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
-                            power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+                        if (gameTheoryKnowledgeType == GLOBAL_KNOWLEDGE) {
+                            for (int j = 0; j < numberNodes; j++) {
+                                UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                                power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
 
-                            if (battN->getState() == power::SimpleBattery::CHARGING) {
-                                dischargeP = hostj->calculateNodeDischargeProb();
+                                if (battN->getState() == power::SimpleBattery::CHARGING) {
+                                    dischargeP = hostj->calculateNodeDischargeProb();
+                                }
                             }
+                        }
+                        else if (gameTheoryKnowledgeType == LOCAL_KNOWLEDGE) {
+                            // use mine
+                            dischargeP = calculateNodeDischargeProb();
+                        }
+                        else {
+                            error("Wrong knowledge scope");
                         }
                     }
                 }
@@ -817,16 +829,31 @@ double UDPBasicRecharge::calculateRechargeProb(bool useDishargeProbIfTheCase) {
 
                 if (unomenoCi > 0){
 
-                    for (int j = 0; j < numberNodes; j++) {
-                        UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
-                        //power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
-                        double hostC = hostj->getGameTheoryC();
-                        long double ppp = (1.0 - hostC) / unomenoCi;
-                        produttoria = produttoria * ppp;
+                    if (gameTheoryKnowledgeType == GLOBAL_KNOWLEDGE) {
+                        for (int j = 0; j < numberNodes; j++) {
+                            UDPBasicRecharge *hostj = check_and_cast<UDPBasicRecharge *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("udpApp", 0));
+                            //power::SimpleBattery *battN = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+                            double hostC = hostj->getGameTheoryC();
+                            long double ppp = (1.0 - hostC) / unomenoCi;
+                            produttoria = produttoria * ppp;
 
-                        //fprintf(stderr, "%Lf ", ppp);
+                            //fprintf(stderr, "%Lf ", ppp);
 
+                        }
                     }
+                    else if (gameTheoryKnowledgeType == LOCAL_KNOWLEDGE) {
+                        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+                            nodeInfo_t *act = &(it->second);
+
+                            double hostC = act->gameTheoryC;
+                            long double ppp = (1.0 - hostC) / unomenoCi;
+                            produttoria = produttoria * ppp;
+                        }
+                    }
+                    else {
+                        error("Wrong knowledge scope");
+                    }
+
                     //fprintf(stderr, "\n");
                     if (dischargeP > 0) {
                         produttoria = produttoria * (unomenoCi / dischargeP);
@@ -835,7 +862,15 @@ double UDPBasicRecharge::calculateRechargeProb(bool useDishargeProbIfTheCase) {
                         produttoria = produttoria * unomenoCi;
                     }
 
-                    nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
+                    if (gameTheoryKnowledgeType == GLOBAL_KNOWLEDGE) {
+                        nmeno1SquareRoot = powl(produttoria, 1.0 / (((long double) numberNodes) - 1.0));
+                    }
+                    else if (gameTheoryKnowledgeType == LOCAL_KNOWLEDGE){
+                        nmeno1SquareRoot = powl(produttoria, 1.0 / ((long double) neigh.size()));
+                    }
+                    else {
+                        error("Wrong knowledge scope");
+                    }
 
                     s = nmeno1SquareRoot;
 
@@ -1431,13 +1466,13 @@ double UDPBasicRecharge::calculateNodeDischargeProb(void) {
                 switch (dischargeProbEnergyToUse) {
                 case ENERGYMIN:
                 default:
-                    energyToUse = getEmin(false);
+                    energyToUse = getEmin(false, GLOBAL_KNOWLEDGE);
                     break;
                 case ENERGYMAX:
-                    energyToUse = getEmax(false);
+                    energyToUse = getEmax(false, GLOBAL_KNOWLEDGE);
                     break;
                 case ENERGYAVG:
-                    energyToUse = getEavg(false);
+                    energyToUse = getEavg(false, GLOBAL_KNOWLEDGE);
                     break;
                 }
 
@@ -2312,7 +2347,7 @@ double UDPBasicRecharge::getMyCoverageActual(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Sigmoid(void) {
     double ris = 0;
-    double eavg = getEavg(false);
+    double eavg = getEavg(false, gameTheoryKnowledgeType);
     //double e = pow (eavg / sb->getBatteryLevelAbs(), 2.0);
     double e = exp (1.0 - (sb->getBatteryLevelAbs() / eavg) );
     double a = getAlpha();
@@ -2327,7 +2362,7 @@ double UDPBasicRecharge::getGameTheoryC_Sigmoid(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear1(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2341,8 +2376,8 @@ double UDPBasicRecharge::getGameTheoryC_Linear1(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear2(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
-    double eMIN = getEmin(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
+    double eMIN = getEmin(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2356,7 +2391,7 @@ double UDPBasicRecharge::getGameTheoryC_Linear2(void) {
 
 double UDPBasicRecharge::getGameTheoryC_Linear3(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2370,8 +2405,8 @@ double UDPBasicRecharge::getGameTheoryC_Linear3(void) {
 
 double UDPBasicRecharge::getGameTheoryC_LinearDiscount(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
-    double eMIN = getEmin(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
+    double eMIN = getEmin(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2395,7 +2430,7 @@ double UDPBasicRecharge::getGameTheoryC_LinearDiscount(void) {
 
 double UDPBasicRecharge::getGameTheoryC_SigmoidDiscount(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2418,8 +2453,8 @@ double UDPBasicRecharge::getGameTheoryC_SigmoidDiscount(void) {
 
 double UDPBasicRecharge::getGameTheoryC_LinearIncrease(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
-    double eMIN = getEmin(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
+    double eMIN = getEmin(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2443,7 +2478,7 @@ double UDPBasicRecharge::getGameTheoryC_LinearIncrease(void) {
 
 double UDPBasicRecharge::getGameTheoryC_SigmoidIncrease(void) {
     double ris = 0;
-    double eMAX = getEmax(false);
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
     double a = getAlpha();
     double b = getBeta();
     double t = getTheta();
@@ -2590,47 +2625,92 @@ double UDPBasicRecharge::getP(void) {
     return ris;
 }
 
-double UDPBasicRecharge::getEavg(bool activeOnly) {
+double UDPBasicRecharge::getEavg(bool activeOnly, GameTheoryKnowledge_Type scope) {
     int numberNodes = this->getParentModule()->getVectorSize();
     double sum = 0;
-    for (int j = 0; j < numberNodes; j++) {
-        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+    double nn;
+    if (scope == GLOBAL_KNOWLEDGE) {
+        for (int j = 0; j < numberNodes; j++) {
+            power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
 
-        if (activeOnly && hostjsb->isCharging()) continue;
+            if (activeOnly && hostjsb->isCharging()) continue;
 
-        sum += hostjsb->getBatteryLevelAbs();
+            sum += hostjsb->getBatteryLevelAbs();
+        }
+        nn = numberNodes;
+    }
+    else if (scope == LOCAL_KNOWLEDGE){
+        sum = sb->getBatteryLevelAbs();
+        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+            sum += act->batteryLevelAbs;
+        }
+        nn = neigh.size() + 1;
+    }
+    else {
+        error("Wrong knowledge scope");
     }
 
-    return (sum / ((double) numberNodes));
+    return (sum / nn);
 }
 
-double UDPBasicRecharge::getEmax(bool activeOnly) {
+double UDPBasicRecharge::getEmax(bool activeOnly, GameTheoryKnowledge_Type scope) {
     int numberNodes = this->getParentModule()->getVectorSize();
-    double max = 0;
-    for (int j = 0; j < numberNodes; j++) {
-        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+    //double max = 0;
+    double max = sb->getBatteryLevelAbs();
+    if (scope == GLOBAL_KNOWLEDGE) {
+        for (int j = 0; j < numberNodes; j++) {
+            power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
 
-        if (activeOnly && hostjsb->isCharging()) continue;
+            if (activeOnly && hostjsb->isCharging()) continue;
 
-        if (hostjsb->getBatteryLevelAbs() > max){
-            max = hostjsb->getBatteryLevelAbs();
+            if (hostjsb->getBatteryLevelAbs() > max){
+                max = hostjsb->getBatteryLevelAbs();
+            }
         }
+    }
+    else if (scope == LOCAL_KNOWLEDGE){
+        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+            double actBatt = act->batteryLevelAbs;
+            if (actBatt > max) {
+                max = actBatt;
+            }
+        }
+    }
+    else {
+        error("Wrong knowledge scope");
     }
 
     return max;
 }
 
-double UDPBasicRecharge::getEmin(bool activeOnly) {
+double UDPBasicRecharge::getEmin(bool activeOnly, GameTheoryKnowledge_Type scope) {
     int numberNodes = this->getParentModule()->getVectorSize();
-    double min = 1000000000;
-    for (int j = 0; j < numberNodes; j++) {
-        power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
+    //double min = 1000000000;
+    double min = sb->getBatteryLevelAbs();
+    if (scope == GLOBAL_KNOWLEDGE) {
+        for (int j = 0; j < numberNodes; j++) {
+            power::SimpleBattery *hostjsb = check_and_cast<power::SimpleBattery *>(this->getParentModule()->getParentModule()->getSubmodule("host", j)->getSubmodule("battery"));
 
-        if (activeOnly && hostjsb->isCharging()) continue;
+            if (activeOnly && hostjsb->isCharging()) continue;
 
-        if (hostjsb->getBatteryLevelAbs() < min){
-            min = hostjsb->getBatteryLevelAbs();
+            if (hostjsb->getBatteryLevelAbs() < min){
+                min = hostjsb->getBatteryLevelAbs();
+            }
         }
+    }
+    else if (scope == LOCAL_KNOWLEDGE){
+        for (auto it = neigh.begin(); it != neigh.end(); it++) {
+            nodeInfo_t *act = &(it->second);
+            double actBatt = act->batteryLevelAbs;
+            if (actBatt < min) {
+                min = actBatt;
+            }
+        }
+    }
+    else {
+        error("Wrong knowledge scope");
     }
 
     return min;
