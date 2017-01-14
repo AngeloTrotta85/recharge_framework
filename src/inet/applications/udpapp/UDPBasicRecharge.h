@@ -57,7 +57,8 @@ public:
         LINEARDISCOUNT,
         SIGMOIDDISCOUNT,
         LINEARINCREASE,
-        SIGMOIDINCREASE
+        SIGMOIDINCREASE,
+        LINEARINCREASECONSISTENT1
     } VarConstant_Type;
 
     typedef enum {
@@ -234,6 +235,7 @@ protected:
   double getGameTheoryC_SigmoidDiscount(void);
   double getGameTheoryC_LinearIncrease(void);
   double getGameTheoryC_SigmoidIncrease(void);
+  double getGameTheoryC_LinearIncreaseConsistent1(void);
 
 
 public:

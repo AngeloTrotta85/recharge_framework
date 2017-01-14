@@ -58,7 +58,7 @@ simple UDPBasicRecharge extends UDPBasicApp
         double chargeTimeOthersNodeFactor = default(0.0);
         
         string stimulusType @enum("STIM_OLD", "CONST_C", "VAR_C_P1", "VAR_C_VAR_P") = default("STIM_OLD");
-        string varConstantType @enum("SIGMOID", "LINEAR1", "LINEAR2", "LINEAR3", "LINEARDISCOUNT", "SIGMOIDDISCOUNT", "LINEARINCREASE", "SIGMOIDINCREASE") = default("SIGMOID");
+        string varConstantType @enum("SIGMOID", "LINEAR1", "LINEAR2", "LINEAR3", "LINEARDISCOUNT", "SIGMOIDDISCOUNT", "LINEARINCREASE", "SIGMOIDINCREASE", "LINEARINCREASECONSISTENT1") = default("SIGMOID");
         string varProbabilityType @enum("ONE_OVER_FORMULAPAPER") = default("ONE_OVER_FORMULAPAPER");
         
         double dicountminLINEAR4 = default(0.9);

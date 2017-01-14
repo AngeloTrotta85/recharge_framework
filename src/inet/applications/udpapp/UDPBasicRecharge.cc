@@ -203,6 +203,9 @@ void UDPBasicRecharge::initialize(int stage)
         else if (constType.compare("SIGMOIDINCREASE") == 0) {
             constant_type = SIGMOIDINCREASE;
         }
+        else if (constType.compare("LINEARINCREASECONSISTENT1") == 0) {
+            constant_type = LINEARINCREASECONSISTENT1;
+        }
         else {
             error("Wrong \"varConstantType\" parameter");
         }
@@ -2482,10 +2485,10 @@ double UDPBasicRecharge::getGameTheoryC_LinearIncrease(void) {
     double g = getGamma();
     double myE = sb->getBatteryLevelAbs();
     //double e = (((myE - eMIN) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
-    double e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+    double e = 1;
 
-    if ((eMAX - eMIN) == 0) {
-        e = 1;
+    if ((eMAX - eMIN) != 0) {
+        e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
     }
 
     ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
@@ -2519,7 +2522,75 @@ double UDPBasicRecharge::getGameTheoryC_SigmoidIncrease(void) {
 
     return ris;
 }
+/*
+double UDPBasicRecharge::getGameTheoryC_LinearIncreaseConsistent1(void) {
+    double ris = 0;
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
+    double eMIN = getEmin(false, gameTheoryKnowledgeType);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double myE = sb->getBatteryLevelAbs();
+    //double e = (((myE - eMIN) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+    double e = 1;
 
+    if ((eMAX - eMIN) != 0) {
+        //e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+        e = (eMAX - myE) / (eMAX - eMIN);
+    }
+
+    //ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    double utMeno, utPiuOk, utPiuFail;
+
+    utMeno = -a*(2.0 + e);
+    utPiuOk = b-g-t;
+    utPiuFail = -a-g-t;
+
+    ris = (utMeno - utPiuOk) / (utPiuFail - utPiuOk);
+
+    //fprintf(stderr, "getGameTheoryC_LinearDiscount: %lf; alpha: %lf; beta: %lf; gamma: %lf; theta: %lf; myE: %lf; eMIN: %lf; eMAX: %lf; e: %lf\n",
+    //        ris, a, b, g, t, myE, eMIN, eMAX, e); fflush(stderr);
+
+    return ris;
+}
+*/
+double UDPBasicRecharge::getGameTheoryC_LinearIncreaseConsistent1(void) {
+    double ris = 0;
+    double eMAX = getEmax(false, gameTheoryKnowledgeType);
+    double eMIN = getEmin(false, gameTheoryKnowledgeType);
+    double a = getAlpha();
+    double b = getBeta();
+    double t = getTheta();
+    double g = getGamma();
+    double myE = sb->getBatteryLevelAbs();
+    //double e = (((myE - eMIN) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+    double e = 1;
+
+    if ((eMAX - eMIN) != 0) {
+        //e = (((eMAX - myE) / (eMAX - eMIN)) * (1.0 - dicountminLINEAR4)) + 1.0;
+        e = (eMAX - myE) / (eMAX - eMIN);
+    }
+
+    //ris = (a + b - t - g) / ((e * (a + t + g)) + b - t - g);
+
+    double utMeno, utPiuOk, utPiuFail;
+
+    if (((e + 1.0)/(1.0 - e)) < 0.0001) return 0.0000001;
+
+    utMeno = -a;
+    utPiuOk = b-g-t;
+    //utPiuFail = (-a-g-t) + log((1.0 - e)/(e + 1.0));
+    utPiuFail = (-a-g-t) * (1.0 + log((e + 1.0)/(1.0 - e)));
+
+    ris = (utMeno - utPiuOk) / (utPiuFail - utPiuOk);
+
+    //fprintf(stderr, "getGameTheoryC_LinearDiscount: %lf; alpha: %lf; beta: %lf; gamma: %lf; theta: %lf; myE: %lf; eMIN: %lf; eMAX: %lf; e: %lf\n",
+    //        ris, a, b, g, t, myE, eMIN, eMAX, e); fflush(stderr);
+
+    return ris;
+}
 
 double UDPBasicRecharge::getGameTheoryC(void) {
     double ris = 0;
@@ -2550,6 +2621,9 @@ double UDPBasicRecharge::getGameTheoryC(void) {
             break;
         case SIGMOIDINCREASE:
             ris = getGameTheoryC_SigmoidIncrease();
+            break;
+        case LINEARINCREASECONSISTENT1:
+            ris = getGameTheoryC_LinearIncreaseConsistent1();
             break;
         }
         /*
